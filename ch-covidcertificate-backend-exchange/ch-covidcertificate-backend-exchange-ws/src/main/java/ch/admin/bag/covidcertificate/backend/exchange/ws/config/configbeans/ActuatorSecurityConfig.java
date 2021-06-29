@@ -1,4 +1,4 @@
-package ch.admin.bag.covidcertificate.backend.exchange.ws.config.config.configbeans;
+package ch.admin.bag.covidcertificate.backend.exchange.ws.config.configbeans;
 
 public class ActuatorSecurityConfig {
     private final String username;

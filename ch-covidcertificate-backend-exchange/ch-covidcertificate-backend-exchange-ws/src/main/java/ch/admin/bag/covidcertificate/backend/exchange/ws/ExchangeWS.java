@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-package ch.admin.bag.covidcertificate.backend.exchange.ws.config;
+package ch.admin.bag.covidcertificate.backend.exchange.ws;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -21,7 +21,6 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableAutoConfiguration
 @EnableWebMvc
 public class ExchangeWS {
-
     public static void main(String[] args) {
         SpringApplication.run(ExchangeWS.class, args);
     }
