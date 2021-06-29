@@ -24,13 +24,13 @@
 
         <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
 
-        <sonar.projectKey>admin-ch_CovidCertificate-App-Certificate-Delivery</sonar.projectKey>
+        <sonar.projectKey>admin-ch_CovidCertificate-App-Exchange-Service</sonar.projectKey>
         <sonar.moduleKey>${project.groupId}:${project.artifactId}</sonar.moduleKey>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>admin-ch</sonar.organization>
         <sonar.login>${env.SONAR_TOKEN}</sonar.login>
         <sonar.coverage.jacoco.xmlReportPaths>
-            ${project.basedir}/../ch-covidcertificate-backend-delivery-report/target/site/jacoco-aggregate/jacoco.xml
+            ${project.basedir}/../ch-covidcertificate-backend-exchange-report/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
