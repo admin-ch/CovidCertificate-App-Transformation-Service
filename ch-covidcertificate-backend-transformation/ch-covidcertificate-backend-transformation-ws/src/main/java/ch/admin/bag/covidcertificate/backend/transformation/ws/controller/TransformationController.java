@@ -44,7 +44,11 @@ public class TransformationController {
     @Documentation(
             description =
                     "Validates the covid certificate transforms it into a lightcert, and returns it and its qr-code version",
-            responses = {"200 => Certificate could be validated and transformed"})
+            responses = {
+                "200 => Certificate could be validated and transformed",
+                "400 => Certificate can't be decoded or is invalid",
+                "502 => BIT or Verification gateway failed"
+            })
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
@@ -55,7 +59,11 @@ public class TransformationController {
     @Documentation(
             description =
                     "Checks that the certificate was issued by the Swiss authorities and generates a new pdf",
-            responses = {"200 => Certificate could be validated and transformed"})
+            responses = {
+                "200 => Certificate could be validated and transformed",
+                "400 => Certificate can't be decoded or is invalid",
+                "502 => BIT or Verification gateway failed"
+            })
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/pdf")
     public @ResponseBody ResponseEntity<PdfPayload> getPdf(
