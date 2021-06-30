@@ -16,16 +16,38 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 class TransformationControllerTest extends BaseControllerTest {
 
-    private final String BASE_URL = "/v1/transform";
-    private final String CERTLIGHT_ENDPOINT = "/certificateLight";
-    private final String PDF_ENDPOINT = "/pdf";
+    private static final Logger logger =
+            LoggerFactory.getLogger(TransformationControllerTest.class);
+
+    private static final String BASE_URL = "/v1/transform";
+    private static final String CERTLIGHT_ENDPOINT = "/certificateLight";
+    private static final String PDF_ENDPOINT = "/pdf";
+    private static final String LIGHT_CERT_MOCK = "src/main/resources/light-cert-mock.json";
+
+    private static CertLightPayload certLightMock;
+
+    static {
+        try {
+            certLightMock =
+                    new ObjectMapper()
+                            .readValue(Paths.get(LIGHT_CERT_MOCK).toFile(), CertLightPayload.class);
+        } catch (IOException e) {
+            logger.error("Couldn't parse light cert mock file");
+        }
+    }
 
     @Test
     void helloTest() throws Exception {
@@ -53,6 +75,10 @@ class TransformationControllerTest extends BaseControllerTest {
                         .andExpect(status().is2xxSuccessful())
                         .andReturn()
                         .getResponse();
+        final var responsePayload =
+                objectMapper.readValue(response.getContentAsString(), CertLightPayload.class);
+        assertEquals(certLightMock.getQrcode(), responsePayload.getQrcode());
+        logger.info("Got here");
     }
 
     @Test

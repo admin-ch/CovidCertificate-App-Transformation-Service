@@ -14,6 +14,9 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPaylo
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
 import ch.ubique.openapi.docannotations.Documentation;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.file.Paths;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +34,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class TransformationController {
 
     private static final Logger logger = LoggerFactory.getLogger(TransformationController.class);
+
+    private static final String LIGHT_CERT_MOCK = "src/main/resources/light-cert-mock.json";
+
+    private static CertLightPayload certLightMock;
+
+    static {
+        try {
+            certLightMock =
+                    new ObjectMapper()
+                            .readValue(Paths.get(LIGHT_CERT_MOCK).toFile(), CertLightPayload.class);
+        } catch (IOException e) {
+            logger.error("Couldn't parse light cert mock file: {}", e.getMessage());
+        }
+    }
 
     @Documentation(
             description = "Echo endpoint",
@@ -53,7 +70,7 @@ public class TransformationController {
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload) {
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(certLightMock);
     }
 
     @Documentation(
