@@ -1,4 +1,4 @@
-# CovidCertificate-App-Verifier-Service
+# CovidCertificate-App-Transformation-Service
 
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://github.com/admin-ch/CovidCertificate-App-Verifier-Service/blob/main/LICENSE)
 [![Build](https://github.com/admin-ch/CovidCertificate-App-Exchange-Service/actions/workflows/build.yml/badge.svg)](https://github.com/admin-ch/CovidCertificate-App-Exchange-Service/actions/workflows/build.yml)
