@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) 2021 Ubique Innovation AG <https://www.ubique.ch>
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 package ch.admin.bag.covidcertificate.backend.exchange.ws.config;
 
 import ch.admin.bag.covidcertificate.backend.exchange.ws.config.configbeans.ActuatorSecurityConfig;
@@ -28,11 +38,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class ActuatorSecurity extends WebSecurityConfigurerAdapter {
 
     private static final String PROMETHEUS_ROLE = "PROMETHEUS";
-
+    @Autowired Environment environment;
     @Value("${ws.monitor.prometheus.user}")
     private String user;
 
-    @Autowired Environment environment;
     // region Actuator Passwords
     // ----------------------------------------------------------------------------------------------------------------------------------
     @Bean
