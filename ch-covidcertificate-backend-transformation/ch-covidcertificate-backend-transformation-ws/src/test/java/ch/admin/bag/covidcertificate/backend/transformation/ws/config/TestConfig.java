@@ -8,17 +8,19 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-package ch.admin.bag.covidcertificate.backend.exchange.ws.config;
+package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
-import ch.admin.bag.covidcertificate.backend.exchange.ws.controller.TransformationController;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
+@Profile("test")
 @Configuration
-public abstract class WsBaseConfig {
+public class TestConfig {
 
     @Bean
-    public TransformationController exchangeController() {
+    public TransformationController transformationController() {
         return new TransformationController();
     }
 }

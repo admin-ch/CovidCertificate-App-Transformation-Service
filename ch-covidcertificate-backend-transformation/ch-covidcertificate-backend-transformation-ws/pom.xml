@@ -119,7 +119,7 @@
                 <version>${spring-boot-version}</version>
                 <configuration>
                     <mainClass>
-                        ch.admin.bag.covidcertificate.backend.exchange.ws.TransformationWS
+                        ch.admin.bag.covidcertificate.backend.transformation.ws.TransformationWS
                     </mainClass>
                 </configuration>
                 <executions>
@@ -152,7 +152,7 @@
                     </basePackages>
                     <controllers>
                         <controller>
-                            ch.admin.bag.covidcertificate.backend.exchange.ws.controller.TransformationController
+                            ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController
                         </controller>
                     </controllers>
                     <description>CH Covidcertificate Exchange API</description>

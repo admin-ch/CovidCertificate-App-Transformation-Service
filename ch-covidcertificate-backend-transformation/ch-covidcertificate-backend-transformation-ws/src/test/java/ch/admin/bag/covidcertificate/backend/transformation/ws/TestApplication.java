@@ -8,11 +8,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-package ch.admin.bag.covidcertificate.backend.exchange.ws;
+package ch.admin.bag.covidcertificate.backend.transformation.ws;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
-@ComponentScan(basePackages = {"ch.admin.bag.covidcertificate.backend.exchange.ws.config"})
+@ComponentScan(basePackages = {"ch.admin.bag.covidcertificate.backend.transformation.ws.config"})
 @SpringBootApplication
 public class TestApplication {}

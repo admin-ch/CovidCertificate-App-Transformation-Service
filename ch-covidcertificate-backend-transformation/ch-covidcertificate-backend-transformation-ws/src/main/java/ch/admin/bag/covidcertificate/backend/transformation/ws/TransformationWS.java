@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-package ch.admin.bag.covidcertificate.backend.exchange.ws;
+package ch.admin.bag.covidcertificate.backend.transformation.ws;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -17,10 +17,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
-@ComponentScan(basePackages = {"ch.admin.bag.covidcertificate.backend.exchange.ws.config"})
+@ComponentScan(basePackages = {"ch.admin.bag.covidcertificate.backend.transformation.ws.config"})
 @EnableAutoConfiguration
 @EnableWebMvc
 public class TransformationWS {
+
     public static void main(String[] args) {
         SpringApplication.run(TransformationWS.class, args);
     }
