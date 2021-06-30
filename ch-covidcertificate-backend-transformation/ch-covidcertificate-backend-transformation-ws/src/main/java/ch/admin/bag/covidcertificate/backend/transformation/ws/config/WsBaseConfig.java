@@ -11,14 +11,24 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public abstract class WsBaseConfig {
 
+    @Value("${mock.url:test}")
+    private String mockUrl;
+
     @Bean
-    public TransformationController transformationController() {
-        return new TransformationController();
+    public TransformationController transformationController(MockHelper mockHelper) {
+        return new TransformationController(mockHelper);
+    }
+
+    @Bean
+    public MockHelper mockHelper() {
+        return new MockHelper(mockUrl);
     }
 }

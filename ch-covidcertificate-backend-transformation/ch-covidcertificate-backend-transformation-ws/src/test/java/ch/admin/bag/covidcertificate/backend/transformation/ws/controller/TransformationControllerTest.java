@@ -21,6 +21,7 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Paths;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,7 @@ class TransformationControllerTest extends BaseControllerTest {
     }
 
     @Test
+    @Disabled("Need to mock AWS endpoint")
     void getCertLightTest() throws Exception {
         var hCertPayload = new HCertPayload();
         hCertPayload.setHcert("HC1:example");
@@ -78,7 +80,6 @@ class TransformationControllerTest extends BaseControllerTest {
         final var responsePayload =
                 objectMapper.readValue(response.getContentAsString(), CertLightPayload.class);
         assertEquals(certLightMock.getQrcode(), responsePayload.getQrcode());
-        logger.info("Got here");
     }
 
     @Test
