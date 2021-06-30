@@ -36,7 +36,7 @@ public class TransformationController {
             description = "Echo endpoint",
             responses = {"200 => Hello from CH CovidCertificate Transformation WS"})
     @CrossOrigin(origins = {"https://editor.swagger.io"})
-    @GetMapping(path = "/")
+    @GetMapping(path = {"", "/"})
     public @ResponseBody String hello() {
         return "Hello from CH CovidCertificate Transformation WS";
     }

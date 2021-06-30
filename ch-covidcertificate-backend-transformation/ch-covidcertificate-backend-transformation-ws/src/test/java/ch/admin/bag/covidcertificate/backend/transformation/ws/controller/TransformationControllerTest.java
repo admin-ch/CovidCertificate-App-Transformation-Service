@@ -30,7 +30,7 @@ class TransformationControllerTest extends BaseControllerTest {
     @Test
     void helloTest() throws Exception {
         final MockHttpServletResponse response =
-                mockMvc.perform(get(BASE_URL).accept(MediaType.TEXT_PLAIN))
+                mockMvc.perform(get(BASE_URL + "/").accept(MediaType.TEXT_PLAIN))
                         .andExpect(status().is2xxSuccessful())
                         .andReturn()
                         .getResponse();

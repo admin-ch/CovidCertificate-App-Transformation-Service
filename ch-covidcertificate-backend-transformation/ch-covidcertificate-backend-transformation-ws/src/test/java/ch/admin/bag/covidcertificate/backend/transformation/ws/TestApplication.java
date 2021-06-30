@@ -11,8 +11,7 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 
-@ComponentScan(basePackages = {"ch.admin.bag.covidcertificate.backend.transformation.ws.config"})
-@SpringBootApplication
+@SpringBootApplication(
+        scanBasePackages = {"ch.admin.bag.covidcertificate.backend.transformation.ws.config"})
 public class TestApplication {}
