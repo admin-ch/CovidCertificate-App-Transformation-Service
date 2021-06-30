@@ -2,6 +2,7 @@
 
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://github.com/admin-ch/CovidCertificate-App-Verifier-Service/blob/main/LICENSE)
 [![Build](https://github.com/admin-ch/CovidCertificate-App-Exchange-Service/actions/workflows/build.yml/badge.svg)](https://github.com/admin-ch/CovidCertificate-App-Exchange-Service/actions/workflows/build.yml)
+[![Code Quality](https://sonarcloud.io/api/project_badges/measure?project=admin-ch_CovidCertificate-App-Exchange-Service&metric=alert_status)](https://sonarcloud.io/dashboard?id=admin-ch_CovidCertificate-App-Exchange-Service)
 
 This project is released by the the [Federal Office of Information Technology, Systems and Telecommunication FOITT](https://www.bit.admin.ch/)
 on behalf of the [Federal Office of Public Health FOPH](https://www.bag.admin.ch/).
