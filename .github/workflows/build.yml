@@ -31,9 +31,9 @@ jobs:
       - name: Build & Test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-        run: mvn -B test --file ch-covidcertificate-backend-exchange/pom.xml
+        run: mvn -B test --file ch-covidcertificate-backend-transformation/pom.xml
       - name: Code Quality
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar --file ch-covidcertificate-backend-exchange/pom.xml
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar --file ch-covidcertificate-backend-transformation/pom.xml

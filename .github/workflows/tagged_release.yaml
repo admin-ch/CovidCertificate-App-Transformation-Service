@@ -21,12 +21,12 @@ jobs:
           settings-path: ${{ github.workspace }} # location for the settings.xml file: :
       - name: Build with Maven
         run: |
-          mvn clean install --file ch-covidcertificate-backend-exchange/pom.xml;
+          mvn clean install --file ch-covidcertificate-backend-transformation/pom.xml;
         env:
           GITHUB_TOKEN: ${{ github.token }}
           TESTCONTAINERS_RYUK_DISABLED: true
       - name: shasum
-        run: shasum -a 256 ch-covidcertificate-backend-verifier/ch-covidcertificate-backend-exchange-ws/target/ch-covidcertificate-backend-exchange-ws.jar > ch-covidcertificate-backend-exchange/ch-covidcertificate-backend-exchange-ws/target/ch-covidcertificate-backend-exchange-ws.jar.sha256
+        run: shasum -a 256 ch-covidcertificate-backend-verifier/ch-covidcertificate-backend-transformation-ws/target/ch-covidcertificate-backend-transformation-ws.jar > ch-covidcertificate-backend-transformation/ch-covidcertificate-backend-transformation-ws/target/ch-covidcertificate-backend-transformation-ws.jar.sha256
         shell: bash
       - name: "Create new release"
         uses: marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0
@@ -34,5 +34,5 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            ch-covidcertificate-backend-exchange/ch-covidcertificate-backend-exchange-ws/target/ch-covidcertificate-backend-exchange-ws.jar
-            ch-covidcertificate-backend-exchange/ch-covidcertificate-backend-exchange-ws/target/ch-covidcertificate-backend-exchange-ws.jar.sha256
+            ch-covidcertificate-backend-transformation/ch-covidcertificate-backend-transformation-ws/target/ch-covidcertificate-backend-transformation-ws.jar
+            ch-covidcertificate-backend-transformation/ch-covidcertificate-backend-transformation-ws/target/ch-covidcertificate-backend-transformation-ws.jar.sha256
