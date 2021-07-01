@@ -31,7 +31,7 @@ public class BaseSecurity extends WebSecurityConfigurerAdapter {
                 .cors()
                 .and()
                 .authorizeRequests()
-                .antMatchers("/v1/transform", "/v1/transform/**")
+                .antMatchers("/app/transform/v1", "/app/transform/v1/**")
                 .permitAll();
     }
 }

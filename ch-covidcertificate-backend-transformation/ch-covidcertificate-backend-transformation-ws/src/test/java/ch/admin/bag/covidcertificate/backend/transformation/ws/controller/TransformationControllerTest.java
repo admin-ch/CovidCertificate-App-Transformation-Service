@@ -33,7 +33,7 @@ class TransformationControllerTest extends BaseControllerTest {
     private static final Logger logger =
             LoggerFactory.getLogger(TransformationControllerTest.class);
 
-    private static final String BASE_URL = "/v1/transform";
+    private static final String BASE_URL = "/app/transform/v1";
     private static final String CERTLIGHT_ENDPOINT = "/certificateLight";
     private static final String PDF_ENDPOINT = "/pdf";
     private static final String LIGHT_CERT_MOCK = "src/main/resources/light-cert-mock.json";

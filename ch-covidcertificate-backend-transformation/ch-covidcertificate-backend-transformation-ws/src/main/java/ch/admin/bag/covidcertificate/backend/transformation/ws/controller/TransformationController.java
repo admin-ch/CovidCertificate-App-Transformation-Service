@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-@RequestMapping("/v1/transform")
+@RequestMapping("/app/transform/v1")
 public class TransformationController {
 
     private static final Logger logger = LoggerFactory.getLogger(TransformationController.class);
