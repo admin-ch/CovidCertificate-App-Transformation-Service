@@ -17,6 +17,9 @@ import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import ch.ubique.openapi.docannotations.Documentation;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Base64;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +81,12 @@ public class TransformationController {
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/pdf")
     public @ResponseBody ResponseEntity<PdfPayload> getPdf(
-            @Valid @RequestBody HCertPayload hCertPayload) {
-        return ResponseEntity.ok().build();
+            @Valid @RequestBody HCertPayload hCertPayload) throws IOException {
+        final byte[] pdfBytes =
+                Files.readAllBytes(Paths.get("src/main/resources/cert-pdf-mock.pdf"));
+        final var pdfEncoded = Base64.getEncoder().encodeToString(pdfBytes);
+        final var pdfPayload = new PdfPayload();
+        pdfPayload.setPdf(pdfEncoded);
+        return ResponseEntity.ok(pdfPayload);
     }
 }

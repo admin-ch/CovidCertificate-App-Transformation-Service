@@ -18,9 +18,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Base64;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -39,12 +42,20 @@ class TransformationControllerTest extends BaseControllerTest {
     private static final String LIGHT_CERT_MOCK = "src/main/resources/light-cert-mock.json";
 
     private static CertLightPayload certLightMock;
+    private static PdfPayload mockPdfPayload;
 
     static {
         try {
             certLightMock =
                     new ObjectMapper()
                             .readValue(Paths.get(LIGHT_CERT_MOCK).toFile(), CertLightPayload.class);
+            var pdfString =
+                    Base64.getEncoder()
+                            .encodeToString(
+                                    Files.readAllBytes(
+                                            Paths.get("src/main/resources/cert-pdf-mock.pdf")));
+            mockPdfPayload = new PdfPayload();
+            mockPdfPayload.setPdf(pdfString);
         } catch (IOException e) {
             logger.error("Couldn't parse light cert mock file");
         }
@@ -95,5 +106,8 @@ class TransformationControllerTest extends BaseControllerTest {
                         .andExpect(status().is2xxSuccessful())
                         .andReturn()
                         .getResponse();
+        final var responsePayload =
+                objectMapper.readValue(response.getContentAsString(), PdfPayload.class);
+        assertEquals(mockPdfPayload.getPdf(), responsePayload.getPdf());
     }
 }
