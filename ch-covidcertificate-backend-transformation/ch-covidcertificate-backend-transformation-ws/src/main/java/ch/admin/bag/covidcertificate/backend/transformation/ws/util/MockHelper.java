@@ -4,6 +4,8 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPaylo
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,11 +14,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 
 public class MockHelper {
 
@@ -45,11 +46,13 @@ public class MockHelper {
     }
 
     public PdfPayload getCertPdfMock(HCertPayload hCertPayload) throws IOException {
-        final byte[] pdfBytes =
-            Files.readAllBytes(Paths.get("src/main/resources/cert-pdf-mock.pdf"));
-        final var pdfEncoded = Base64.getEncoder().encodeToString(pdfBytes);
-        final var pdfPayload = new PdfPayload();
-        pdfPayload.setPdf(pdfEncoded);
-        return pdfPayload;
+        try(var is = new ClassPathResource("cert-pdf-mock.pdf").getInputStream();
+            var bis = new BufferedInputStream(is)) {
+                final byte[] pdfBytes = bis.readAllBytes();
+                final var pdfEncoded = Base64.getEncoder().encodeToString(pdfBytes);
+                final var pdfPayload = new PdfPayload();
+                pdfPayload.setPdf(pdfEncoded);
+                return pdfPayload;
+        }
     }
 }
