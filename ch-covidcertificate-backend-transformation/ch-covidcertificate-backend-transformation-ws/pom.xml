@@ -110,7 +110,7 @@
 
     <build>
         <finalName>
-            ch-covidcertificate-backend-exchange-ws
+            ch-covidcertificate-backend-transformation-ws
         </finalName>
         <plugins>
             <plugin>
