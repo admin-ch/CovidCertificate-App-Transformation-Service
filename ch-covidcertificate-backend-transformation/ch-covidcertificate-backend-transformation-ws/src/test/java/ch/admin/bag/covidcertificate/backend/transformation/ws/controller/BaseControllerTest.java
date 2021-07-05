@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-package ch.admin.bag.covidcertificate.backend.exchange.ws.controller;
+package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +21,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 @ExtendWith(SpringExtension.class)
-@ActiveProfiles({"test"})
+@ActiveProfiles({"test", "security"})
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application-test.properties")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

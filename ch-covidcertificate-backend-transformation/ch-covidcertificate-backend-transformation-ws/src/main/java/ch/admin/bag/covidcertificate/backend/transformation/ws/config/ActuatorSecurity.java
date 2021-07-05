@@ -8,9 +8,9 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-package ch.admin.bag.covidcertificate.backend.exchange.ws.config;
+package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
-import ch.admin.bag.covidcertificate.backend.exchange.ws.config.configbeans.ActuatorSecurityConfig;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.config.configbeans.ActuatorSecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.HealthEndpoint;

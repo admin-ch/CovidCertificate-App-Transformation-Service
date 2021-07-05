@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-package ch.admin.bag.covidcertificate.backend.exchange.ws.config.configbeans;
+package ch.admin.bag.covidcertificate.backend.transformation.ws.config.configbeans;
 
 public class ActuatorSecurityConfig {
     private final String username;

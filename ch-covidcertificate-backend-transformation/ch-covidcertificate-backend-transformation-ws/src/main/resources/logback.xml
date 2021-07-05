@@ -18,13 +18,13 @@
     </appender>
     <appender name="logfile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender -->
-        <File>ch-covidcertificate-backend-exchange-ws.log</File>
+        <File>ch-covidcertificate-backend-transformation-ws.log</File>
         <encoder>
             <pattern>%d %p [%c] - %m%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
             <maxIndex>3</maxIndex>
-            <FileNamePattern>ch-covidcertificate-backend-exchange-ws.log.%i</FileNamePattern>
+            <FileNamePattern>ch-covidcertificate-backend-transformation-ws.log.%i</FileNamePattern>
         </rollingPolicy>
         <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
             <MaxFileSize>512KB</MaxFileSize>
