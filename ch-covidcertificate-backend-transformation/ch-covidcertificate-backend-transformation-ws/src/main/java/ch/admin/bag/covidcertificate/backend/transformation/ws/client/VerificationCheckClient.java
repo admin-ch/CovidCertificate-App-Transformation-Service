@@ -44,6 +44,7 @@ public class VerificationCheckClient {
             hCert = objectMapper.writeValueAsString(hCertPayload);
             final var request =
                     HttpRequest.newBuilder(new URI(baseurl + verifyEndpoint))
+                            .header("Content-Type", "application/json")
                             .POST(BodyPublishers.ofString(hCert))
                             .build();
             final HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
