@@ -25,6 +25,9 @@ public abstract class WsBaseConfig {
     @Value("${mock.url:test}")
     private String mockUrl;
 
+    @Value("${transform.light.endpoint}")
+    private String lightCertificateEnpoint;
+
     @Value("${ws.jwt.client-id:default-client}")
     private String clientId;
 
@@ -39,7 +42,7 @@ public abstract class WsBaseConfig {
             MockHelper mockHelper,
             VerificationCheckClient verificationCheckClient,
             OauthWebClient tokenReceiver) {
-        return new TransformationController(mockHelper, verificationCheckClient, tokenReceiver);
+        return new TransformationController(lightCertificateEnpoint, verificationCheckClient, tokenReceiver, mockHelper());
     }
 
     @Bean

@@ -13,6 +13,8 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.Person;
+import ch.admin.bag.covidcertificate.backend.transformation.model.TransformPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
@@ -20,8 +22,12 @@ import ch.ubique.openapi.docannotations.Documentation;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import javax.validation.Valid;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -37,17 +43,24 @@ public class TransformationController {
 
     private static final Logger logger = LoggerFactory.getLogger(TransformationController.class);
 
-    private final MockHelper mockHelper;
+    private final String lightCertificateEnpoint;
     private final VerificationCheckClient verificationCheckClient;
     private final OauthWebClient oauthWebClient;
+    private final ObjectMapper objectMapper;
+    private final MockHelper mockHelper;
+
 
     public TransformationController(
-            MockHelper mockHelper,
+            String lightCertificateEnpoint,
             VerificationCheckClient verificationCheckClient,
-            OauthWebClient tokenReceiver) {
-        this.mockHelper = mockHelper;
+            OauthWebClient tokenReceiver,
+            MockHelper mockHelper) {
+        this.lightCertificateEnpoint = lightCertificateEnpoint;
         this.verificationCheckClient = verificationCheckClient;
         this.oauthWebClient = tokenReceiver;
+        this.mockHelper = mockHelper;
+
+        this.objectMapper = new ObjectMapper();
     }
 
     @Documentation(
@@ -76,9 +89,28 @@ public class TransformationController {
         if (dccHolder == null) {
             return ResponseEntity.badRequest().build();
         }
-        // TODO: Read required fields from DccHolder and send request to BIT endpoint
-        final var certLightMock = mockHelper.getCertLightMock(hCertPayload);
-        return ResponseEntity.ok(certLightMock);
+        var euCert = dccHolder.getEuDGC();
+        var name = euCert.getPerson();
+
+        var person = new Person();
+        person.setFn(name.getFamilyName());
+        person.setGn(name.getGivenName());
+        person.setFnt(name.getStandardizedFamilyName());
+        person.setGnt(name.getStandardizedGivenName());
+
+        var transformPayload = new TransformPayload();
+        transformPayload.setNam(person);
+        transformPayload.setDob(euCert.getDateOfBirth());
+        transformPayload.setExp(Integer.valueOf((int) (dccHolder.getExpirationTime().toEpochMilli()/1000)));
+
+        var transformResponse = oauthWebClient.getWebClient()
+        .post()
+        .uri(lightCertificateEnpoint)
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(transformPayload)
+        .retrieve().bodyToMono(String.class).block();
+        var certLight = objectMapper.readValue(transformResponse, CertLightPayload.class);
+        return ResponseEntity.ok(certLight);
     }
 
     @Documentation(
