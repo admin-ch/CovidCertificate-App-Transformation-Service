@@ -14,6 +14,7 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPaylo
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
 import ch.ubique.openapi.docannotations.Documentation;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -36,9 +37,11 @@ public class TransformationController {
     private static final Logger logger = LoggerFactory.getLogger(TransformationController.class);
 
     private final MockHelper mockHelper;
+    private final OauthWebClient oauthWebClient;
 
-    public TransformationController(MockHelper mockHelper) {
+    public TransformationController(MockHelper mockHelper, OauthWebClient tokenReceiver) {
         this.mockHelper = mockHelper;
+        this.oauthWebClient = tokenReceiver;
     }
 
     @Documentation(

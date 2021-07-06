@@ -12,9 +12,12 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 
 @Configuration
 public abstract class WsBaseConfig {
@@ -22,9 +25,17 @@ public abstract class WsBaseConfig {
     @Value("${mock.url:test}")
     private String mockUrl;
 
+    @Value("${ws.jwt.client-id:default-client}")
+    private String clientId;
+
     @Bean
-    public TransformationController transformationController(MockHelper mockHelper) {
-        return new TransformationController(mockHelper);
+    public TransformationController transformationController(MockHelper mockHelper, OauthWebClient tokenReceiver) {
+        return new TransformationController(mockHelper, tokenReceiver);
+    }
+
+    @Bean
+    public OauthWebClient tokenReceiver(ClientRegistrationRepository clientRegistration) {
+        return new OauthWebClient(clientId, clientRegistration);
     }
 
     @Bean

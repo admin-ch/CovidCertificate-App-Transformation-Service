@@ -26,7 +26,7 @@ public class TestConfig {
 
     @Bean
     public TransformationController transformationController(MockHelper mockHelper) {
-        return new TransformationController(mockHelper);
+        return new TransformationController(mockHelper, null);
     }
 
     @Bean
