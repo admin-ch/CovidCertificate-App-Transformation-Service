@@ -17,18 +17,4 @@ import org.junit.jupiter.api.Test;
 
 public class TokenReceiverTest {
 
-    // @Test
-    public void testToken() throws Exception {
-        var tokenReceiver = new TokenReceiver(
-            "<token_endpoint>", 
-            "client_credentials",
-            "openid", 
-            "<client_id>",
-             "<client_secret>");
-        var token = tokenReceiver.getBearer();
-        var secondToken = tokenReceiver.getBearer();
-        assertEquals(token, secondToken);
-        var thirdToken = tokenReceiver.getBearer(true);
-        assertNotEquals(token, thirdToken);
-    }
 }
