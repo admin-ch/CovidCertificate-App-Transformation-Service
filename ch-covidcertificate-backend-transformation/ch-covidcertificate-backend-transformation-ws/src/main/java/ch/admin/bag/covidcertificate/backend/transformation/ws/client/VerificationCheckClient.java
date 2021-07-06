@@ -17,6 +17,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 public class VerificationCheckClient {
 
@@ -46,8 +47,8 @@ public class VerificationCheckClient {
                             .POST(BodyPublishers.ofString(hCert))
                             .build();
             final HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
-            if (response.statusCode() == 400) {
-                logger.info("Certificate couldn't be decoded.");
+            if (response.statusCode() != HttpStatus.OK.value()) {
+                logger.info("Certificate couldn't be decoded: HTTP {}: {}", response.statusCode(), response.body());
                 return null;
             }
             return objectMapper.readValue(response.body(), VerificationResponse.class);
