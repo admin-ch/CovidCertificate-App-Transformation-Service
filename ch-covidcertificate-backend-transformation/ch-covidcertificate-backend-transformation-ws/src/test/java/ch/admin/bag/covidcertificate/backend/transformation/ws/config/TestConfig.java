@@ -10,6 +10,7 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,13 +25,25 @@ public class TestConfig {
     @Value("${mock.url}")
     private String mockUrl;
 
+    @Value("${verification.check.baseurl}")
+    private String verificationCheckBaseUrl;
+
+    @Value("${verification.check.endpoint}")
+    private String verificationCheckEndpoint;
+
     @Bean
-    public TransformationController transformationController(MockHelper mockHelper) {
-        return new TransformationController(mockHelper, null);
+    public TransformationController transformationController(
+            MockHelper mockHelper, VerificationCheckClient verificationCheckClient) {
+        return new TransformationController(mockHelper, verificationCheckClient, null);
     }
 
     @Bean
     public MockHelper mockHelper() {
         return new MockHelper(mockUrl);
+    }
+
+    @Bean
+    public VerificationCheckClient verificationCheckClient() {
+        return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint);
     }
 }

@@ -10,10 +10,10 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,9 +28,18 @@ public abstract class WsBaseConfig {
     @Value("${ws.jwt.client-id:default-client}")
     private String clientId;
 
+    @Value("${verification.check.baseurl}")
+    private String verificationCheckBaseUrl;
+
+    @Value("${verification.check.endpoint}")
+    private String verificationCheckEndpoint;
+
     @Bean
-    public TransformationController transformationController(MockHelper mockHelper, OauthWebClient tokenReceiver) {
-        return new TransformationController(mockHelper, tokenReceiver);
+    public TransformationController transformationController(
+            MockHelper mockHelper,
+            VerificationCheckClient verificationCheckClient,
+            OauthWebClient tokenReceiver) {
+        return new TransformationController(mockHelper, verificationCheckClient, tokenReceiver);
     }
 
     @Bean
@@ -41,5 +50,10 @@ public abstract class WsBaseConfig {
     @Bean
     public MockHelper mockHelper() {
         return new MockHelper(mockUrl);
+    }
+
+    @Bean
+    public VerificationCheckClient verificationCheckClient() {
+        return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint);
     }
 }

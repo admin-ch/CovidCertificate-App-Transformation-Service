@@ -13,6 +13,7 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
 import ch.ubique.openapi.docannotations.Documentation;
@@ -37,10 +38,15 @@ public class TransformationController {
     private static final Logger logger = LoggerFactory.getLogger(TransformationController.class);
 
     private final MockHelper mockHelper;
+    private final VerificationCheckClient verificationCheckClient;
     private final OauthWebClient oauthWebClient;
 
-    public TransformationController(MockHelper mockHelper, OauthWebClient tokenReceiver) {
+    public TransformationController(
+            MockHelper mockHelper,
+            VerificationCheckClient verificationCheckClient,
+            OauthWebClient tokenReceiver) {
         this.mockHelper = mockHelper;
+        this.verificationCheckClient = verificationCheckClient;
         this.oauthWebClient = tokenReceiver;
     }
 
@@ -66,6 +72,11 @@ public class TransformationController {
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
             throws IOException, URISyntaxException, InterruptedException {
+        final var dccHolder = verificationCheckClient.isValid(hCertPayload);
+        if (dccHolder == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        // TODO: Read required fields from DccHolder and send request to BIT endpoint
         final var certLightMock = mockHelper.getCertLightMock(hCertPayload);
         return ResponseEntity.ok(certLightMock);
     }
