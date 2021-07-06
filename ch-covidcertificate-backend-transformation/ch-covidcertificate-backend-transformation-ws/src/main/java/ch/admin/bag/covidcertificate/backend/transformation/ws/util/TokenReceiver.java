@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 public class TokenReceiver {
+    private static final double TIME_SKEW_PERCENTAGE = 0.1;
+
     private final String grantType;
     private final String scope;
     private final String tokenEndpoint;
@@ -67,7 +69,9 @@ public class TokenReceiver {
         if(token == null) {
             return "";
         }
-        expiresAt = Instant.now().plusSeconds(token.getExpiresIn() - 50);
+        var expiresIn = token.getExpiresIn();
+        var skew = (int)(TIME_SKEW_PERCENTAGE * expiresIn);
+        expiresAt = Instant.now().plusSeconds(token.getExpiresIn() - skew);
         bearer = "Bearer " + token.getAccessToken();
         return bearer;
     }
