@@ -140,6 +140,26 @@
         </finalName>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <configuration>
+                    <groupId>ch.admin.bag.covidcertificate</groupId>
+                    <artifactId>CovidCertificate-SDK-Kotlin</artifactId>
+                    <version>1.0.1</version>
+                    <packaging>jar</packaging>
+                    <file>${basedir}/lib/CovidCertificate-SDK-Kotlin-1.0.1.jar</file>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install-jar-lib</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot-version}</version>
