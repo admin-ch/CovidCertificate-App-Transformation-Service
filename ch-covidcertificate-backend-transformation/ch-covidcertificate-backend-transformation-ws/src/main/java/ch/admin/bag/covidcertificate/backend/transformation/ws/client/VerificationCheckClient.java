@@ -4,6 +4,7 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.DccHolder;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckSignatureState;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
@@ -35,7 +36,8 @@ public class VerificationCheckClient {
         objectMapper =
                 new ObjectMapper()
                         .registerModule(new KotlinModule())
-                        .registerModule(new JavaTimeModule());
+                        .registerModule(new JavaTimeModule())
+                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     private VerificationResponse verify(HCertPayload hCertPayload) {
