@@ -46,13 +46,13 @@ public class VerificationCheckClient {
                             .POST(BodyPublishers.ofString(hCert))
                             .build();
             final HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
-            if (response.statusCode() != 400) {
+            if (response.statusCode() == 400) {
                 logger.info("Certificate couldn't be decoded.");
                 return null;
             }
             return objectMapper.readValue(response.body(), VerificationResponse.class);
         } catch (URISyntaxException | IOException | InterruptedException e) {
-            logger.error("Couldn't verify certificate");
+            logger.error("Couldn't verify certificate", e);
             return null;
         }
     }
