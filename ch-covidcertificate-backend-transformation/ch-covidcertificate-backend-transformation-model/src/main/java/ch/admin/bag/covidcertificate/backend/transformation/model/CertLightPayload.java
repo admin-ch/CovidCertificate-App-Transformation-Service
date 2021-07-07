@@ -16,21 +16,21 @@ public class CertLightPayload {
     @Documentation(description = "Base-64-encoded png image of the qr-code")
     @NotNull
     @JsonAlias({"qrCode", "qrcode"})
-    private String qrcode;
+    private String qrCode;
 
     public String getPayload() {
         return payload;
     }
 
-    public String getQrcode() {
-        return qrcode;
+    public String getQrCode() {
+        return qrCode;
     }
 
     public void setPayload(String payload) {
         this.payload = payload;
     }
 
-    public void setQrcode(String qrcode) {
-        this.qrcode = qrcode;
+    public void setQrCode(String qrCode) {
+        this.qrCode = qrCode;
     }
 }
