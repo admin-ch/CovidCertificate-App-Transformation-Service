@@ -96,10 +96,10 @@ public class TransformationController {
         var name = euCert.get("nam");
 
         var person = new Person();
-        person.setFn(name.get("fn").asText());
-        person.setGn(name.get("gn").asText());
-        person.setFnt(name.get("fnt").asText());
-        person.setGnt(name.get("gnt").asText());
+        person.setFn(name.get("familyName").asText());
+        person.setGn(name.get("givenName").asText());
+        person.setFnt(name.get("standardizedFamilyName").asText());
+        person.setGnt(name.get("standardizedGivenName").asText());
 
         var transformPayload = new TransformPayload();
         transformPayload.setNam(person);
