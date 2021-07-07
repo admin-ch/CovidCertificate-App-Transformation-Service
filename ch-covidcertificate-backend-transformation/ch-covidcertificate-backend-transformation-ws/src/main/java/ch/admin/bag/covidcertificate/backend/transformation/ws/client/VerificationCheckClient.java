@@ -40,7 +40,7 @@ public class VerificationCheckClient {
                         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    private VerificationResponse verify(HCertPayload hCertPayload) {
+    private VerificationResponse verify(HCertPayload hCertPayload) throws InterruptedException {
         final String hCert;
         try {
             hCert = objectMapper.writeValueAsString(hCertPayload);
@@ -55,9 +55,12 @@ public class VerificationCheckClient {
                 return null;
             }
             return objectMapper.readValue(response.body(), VerificationResponse.class);
-        } catch (URISyntaxException | IOException | InterruptedException e) {
+        } catch (URISyntaxException | IOException e) {
             logger.error("Couldn't verify certificate", e);
             return null;
+        } catch (InterruptedException e) {
+            logger.error("Couldn't verify certificate", e);
+            throw e;
         }
     }
 
@@ -67,7 +70,7 @@ public class VerificationCheckClient {
      * @param hCertPayload payload as sent with the original request
      * @return the decoded certificate if it decodeable and valid, null otherwise
      */
-    public DccHolder isValid(HCertPayload hCertPayload) {
+    public DccHolder isValid(HCertPayload hCertPayload) throws InterruptedException {
         final var verificationResponse = verify(hCertPayload);
         if (verificationResponse != null && verificationResponse.getSuccessState() != null) {
             return verificationResponse.getHcertDecoded();

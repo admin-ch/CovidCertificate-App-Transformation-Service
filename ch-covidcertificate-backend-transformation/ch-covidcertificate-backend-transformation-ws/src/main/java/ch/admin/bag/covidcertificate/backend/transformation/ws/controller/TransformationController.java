@@ -19,12 +19,10 @@ import ch.admin.bag.covidcertificate.backend.transformation.ws.client.Verificati
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
 import ch.ubique.openapi.docannotations.Documentation;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import javax.validation.Valid;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -48,7 +46,6 @@ public class TransformationController {
     private final OauthWebClient oauthWebClient;
     private final ObjectMapper objectMapper;
     private final MockHelper mockHelper;
-
 
     public TransformationController(
             String lightCertificateEnpoint,
@@ -104,15 +101,20 @@ public class TransformationController {
         var transformPayload = new TransformPayload();
         transformPayload.setNam(person);
         transformPayload.setDob(euCert.getDateOfBirth());
-        transformPayload.setExp(Integer.valueOf((int) (dccHolder.getExpirationTime().toEpochMilli()/1000)));
+        transformPayload.setExp(
+                Integer.valueOf((int) (dccHolder.getExpirationTime().toEpochMilli() / 1000)));
 
         // Get and forward light certificate
-        var transformResponse = oauthWebClient.getWebClient()
-        .post()
-        .uri(lightCertificateEnpoint)
-        .contentType(MediaType.APPLICATION_JSON)
-        .bodyValue(transformPayload)
-        .retrieve().bodyToMono(String.class).block();
+        var transformResponse =
+                oauthWebClient
+                        .getWebClient()
+                        .post()
+                        .uri(lightCertificateEnpoint)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(transformPayload)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .block();
         var certLight = objectMapper.readValue(transformResponse, CertLightPayload.class);
         return ResponseEntity.ok(certLight);
     }
