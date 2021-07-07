@@ -16,6 +16,7 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.Person;
 import ch.admin.bag.covidcertificate.backend.transformation.model.TransformPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
 import ch.ubique.openapi.docannotations.Documentation;
@@ -27,15 +28,19 @@ import java.time.ZoneId;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.HttpStatusCodeException;
 
 @Controller
 @RequestMapping("/app/transform/v1")
@@ -83,9 +88,9 @@ public class TransformationController {
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, ValidationException {
         // Decode and verify hcert
-        final var validationResponse = verificationCheckClient.isValid(hCertPayload);
+        final var validationResponse = verificationCheckClient.validate(hCertPayload);
         final var dccHolder = validationResponse.getHcertDecoded();
         if (dccHolder == null) {
             return ResponseEntity.badRequest().build();
@@ -145,4 +150,13 @@ public class TransformationController {
             @Valid @RequestBody HCertPayload hCertPayload) throws IOException {
         return ResponseEntity.ok(mockHelper.getCertPdfMock(hCertPayload));
     }
+
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> validationFailed(ValidationException e) {
+        logger.error("Validation failed: {}", e.getState());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getState());
+    }
+
 }

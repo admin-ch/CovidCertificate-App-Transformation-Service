@@ -2,6 +2,7 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.client;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.DccHolder;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckSignatureState;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -72,13 +73,14 @@ public class VerificationCheckClient {
      *
      * @param hCertPayload payload as sent with the original request
      * @return the decoded certificate if it decodeable and valid, null otherwise
+     * @throws ValidationException
      */
-    public VerificationResponse isValid(HCertPayload hCertPayload) throws InterruptedException {
+    public VerificationResponse validate(HCertPayload hCertPayload) throws InterruptedException, ValidationException {
         final var verificationResponse = verify(hCertPayload);
         if (verificationResponse != null && verificationResponse.getSuccessState() != null) {
             return verificationResponse;
         } else {
-            return null;
+            throw new ValidationException(verificationResponse.getErrorState() != null? verificationResponse.getErrorState(): verificationResponse.getInvalidState());
         }
     }
-}
+} 
