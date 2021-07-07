@@ -21,10 +21,9 @@ import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClie
 import ch.ubique.openapi.docannotations.Documentation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
-
+import java.time.ZoneId;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,34 +83,38 @@ public class TransformationController {
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
-            throws IOException, URISyntaxException, InterruptedException {
+            throws IOException, InterruptedException {
         // Decode and verify hcert
-        final var dccHolder = verificationCheckClient.isValid(hCertPayload);
+        final var validationResponse = verificationCheckClient.isValid(hCertPayload);
+        final var dccHolder = validationResponse.getHcertDecoded();
         if (dccHolder == null) {
             return ResponseEntity.badRequest().build();
         }
 
         // Create payload for qr light endpoint
-        var euCert = dccHolder.get("euDGC");
-        var name = euCert.get("nam");
+        var euCert = dccHolder.getEuDGC();
+        var name = euCert.getPerson();
 
         var person = new Person();
-        person.setFn(name.get("familyName").asText());
-        person.setGn(name.get("givenName").asText());
-        person.setFnt(name.get("standardizedFamilyName").asText());
-        person.setGnt(name.get("standardizedGivenName").asText());
+        person.setFn(name.getFamilyName());
+        person.setGn(name.getGivenName());
+        person.setFnt(name.getStandardizedFamilyName());
+        person.setGnt(name.getStandardizedGivenName());
 
         var transformPayload = new TransformPayload();
         transformPayload.setNam(person);
-        transformPayload.setDob(euCert.get("dob").asText());
-        var exp = Instant.ofEpochSecond((int)dccHolder.get("expirationTime").asDouble());
-        var nowPlus48 = Instant.now().plus(Duration.ofHours(48));
-        if(nowPlus48.toEpochMilli() < exp.toEpochMilli()) {
-            transformPayload.setExp(nowPlus48.toEpochMilli());
-        } else {
-             transformPayload.setExp(exp.toEpochMilli());
-        }
-        
+        transformPayload.setDob(euCert.getDateOfBirth());
+
+        var exp =
+                validationResponse
+                        .getSuccessState()
+                        .getValidityRange()
+                        .getValidUntil()
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant()
+                        .toEpochMilli();
+        var nowPlus48 = Instant.now().plus(Duration.ofHours(48)).toEpochMilli();
+        transformPayload.setExp((exp < nowPlus48) ? exp : nowPlus48);
 
         // Get and forward light certificate
         var transformResponse =

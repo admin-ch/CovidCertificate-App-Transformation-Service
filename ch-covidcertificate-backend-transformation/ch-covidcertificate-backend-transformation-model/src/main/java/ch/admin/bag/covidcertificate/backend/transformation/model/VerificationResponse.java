@@ -13,7 +13,7 @@ public class VerificationResponse {
     private INVALID invalidState;
     private DccHolder hcertDecoded;
 
-    public VerificationState getSuccessState() {
+    public SUCCESS getSuccessState() {
         return successState;
     }
 
