@@ -4,7 +4,10 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.DccHolder;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckSignatureState;
+
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
@@ -40,7 +43,7 @@ public class VerificationCheckClient {
                         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    private VerificationResponse verify(HCertPayload hCertPayload) throws InterruptedException {
+    private JsonNode verify(HCertPayload hCertPayload) throws InterruptedException {
         final String hCert;
         try {
             hCert = objectMapper.writeValueAsString(hCertPayload);
@@ -54,7 +57,7 @@ public class VerificationCheckClient {
                 logger.info("Certificate couldn't be decoded: HTTP {}: {}", response.statusCode(), response.body());
                 return null;
             }
-            return objectMapper.readValue(response.body(), VerificationResponse.class);
+            return objectMapper.readTree(response.body());
         } catch (URISyntaxException | IOException e) {
             logger.error("Couldn't verify certificate", e);
             return null;
@@ -70,30 +73,30 @@ public class VerificationCheckClient {
      * @param hCertPayload payload as sent with the original request
      * @return the decoded certificate if it decodeable and valid, null otherwise
      */
-    public DccHolder isValid(HCertPayload hCertPayload) throws InterruptedException {
+    public JsonNode isValid(HCertPayload hCertPayload) throws InterruptedException {
         final var verificationResponse = verify(hCertPayload);
-        if (verificationResponse != null && verificationResponse.getSuccessState() != null) {
-            return verificationResponse.getHcertDecoded();
+        if (verificationResponse != null && verificationResponse.get("successState")!= null) {
+            return verificationResponse.get("hcertDecoded");
         } else {
             return null;
         }
     }
 
-    /**
-     * Decode a client HCert and verify its signature
-     *
-     * @param hCertPayload payload as sent with the original request
-     * @return the decoded certificate if it decodeable and its signature is valid, null otherwise
-     */
-    public DccHolder isValidSig(HCertPayload hCertPayload) throws InterruptedException {
-        final var verificationResponse = verify(hCertPayload);
-        if (verificationResponse != null
-                && (verificationResponse.getSuccessState() != null
-                        || (verificationResponse.getInvalidState() != null
-                                && verificationResponse.getInvalidState().getSignatureState()
-                                        instanceof CheckSignatureState.SUCCESS))) {
-            return verificationResponse.getHcertDecoded();
-        }
-        return null;
-    }
+    // /**
+    //  * Decode a client HCert and verify its signature
+    //  *
+    //  * @param hCertPayload payload as sent with the original request
+    //  * @return the decoded certificate if it decodeable and its signature is valid, null otherwise
+    //  */
+    // public DccHolder isValidSig(HCertPayload hCertPayload) throws InterruptedException {
+    //     final var verificationResponse = verify(hCertPayload);
+    //     if (verificationResponse != null
+    //             && (verificationResponse.getSuccessState() != null
+    //                     || (verificationResponse.getInvalidState() != null
+    //                             && verificationResponse.getInvalidState().getSignatureState()
+    //                                     instanceof CheckSignatureState.SUCCESS))) {
+    //         return verificationResponse.getHcertDecoded();
+    //     }
+    //     return null;
+    // }
 }

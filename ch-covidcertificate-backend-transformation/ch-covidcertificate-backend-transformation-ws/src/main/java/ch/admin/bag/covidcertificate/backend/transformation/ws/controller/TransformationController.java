@@ -22,6 +22,9 @@ import ch.ubique.openapi.docannotations.Documentation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.Duration;
+import java.time.Instant;
+
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,20 +92,28 @@ public class TransformationController {
         }
 
         // Create payload for qr light endpoint
-        var euCert = dccHolder.getEuDGC();
-        var name = euCert.getPerson();
+        var euCert = dccHolder.get("euDGC");
+        var name = euCert.get("nam");
 
         var person = new Person();
-        person.setFn(name.getFamilyName());
-        person.setGn(name.getGivenName());
-        person.setFnt(name.getStandardizedFamilyName());
-        person.setGnt(name.getStandardizedGivenName());
+        person.setFn(name.get("fn").asText());
+        person.setGn(name.get("gn").asText());
+        person.setFnt(name.get("fnt").asText());
+        person.setGnt(name.get("gnt").asText());
 
         var transformPayload = new TransformPayload();
         transformPayload.setNam(person);
-        transformPayload.setDob(euCert.getDateOfBirth());
-        transformPayload.setExp(
-                Integer.valueOf((int) (dccHolder.getExpirationTime().toEpochMilli() / 1000)));
+        transformPayload.setDob(euCert.get("dob").asText());
+        var exp = Instant.ofEpochSecond((int)dccHolder.get("expirationTime").asDouble());
+        var nowPlus48 = Instant.now().plus(Duration.ofHours(48));
+        if(nowPlus48.toEpochMilli() < exp.toEpochMilli()) {
+            transformPayload.setExp(
+                Integer.valueOf((int) (nowPlus48.toEpochMilli() / 1000)));
+        } else {
+             transformPayload.setExp(
+                Integer.valueOf((int) (exp.toEpochMilli() / 1000)));
+        }
+        
 
         // Get and forward light certificate
         var transformResponse =
