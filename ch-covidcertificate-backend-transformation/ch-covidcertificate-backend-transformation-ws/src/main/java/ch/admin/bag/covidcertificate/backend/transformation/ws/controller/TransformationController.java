@@ -81,12 +81,14 @@ public class TransformationController {
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
-            throws IOException, URISyntaxException, InterruptedException {
+            throws IOException, InterruptedException {
         // Decode and verify hcert
         final var dccHolder = verificationCheckClient.isValid(hCertPayload);
         if (dccHolder == null) {
             return ResponseEntity.badRequest().build();
         }
+
+        // TODO: Check rate-limit: Read UVCI, hash, read current rate, increase or interrupt
 
         // Create payload for qr light endpoint
         var euCert = dccHolder.getEuDGC();
