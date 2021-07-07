@@ -16,6 +16,7 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.Person;
 import ch.admin.bag.covidcertificate.backend.transformation.model.TransformPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
@@ -88,7 +89,7 @@ public class TransformationController {
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
-            throws IOException, InterruptedException, ValidationException {
+            throws IOException, InterruptedException, ValidationException, ResponseParseError {
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validate(hCertPayload);
         final var dccHolder = validationResponse.getHcertDecoded();
@@ -155,6 +156,13 @@ public class TransformationController {
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> validationFailed(ValidationException e) {
+        logger.error("Validation failed: {}", e.getState());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getState());
+    }
+
+    @ExceptionHandler(ResponseParseError.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> validationParseFailed(ResponseParseError e) {
         logger.error("Validation failed: {}", e.getState());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getState());
     }

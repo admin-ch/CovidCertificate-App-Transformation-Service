@@ -2,11 +2,15 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.client;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.DccHolder;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckSignatureState;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import java.io.IOException;
@@ -41,7 +45,7 @@ public class VerificationCheckClient {
                         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    private VerificationResponse verify(HCertPayload hCertPayload) throws InterruptedException {
+    private VerificationResponse verify(HCertPayload hCertPayload) throws InterruptedException, ResponseParseError {
         final String hCert;
         try {
             hCert = objectMapper.writeValueAsString(hCertPayload);
@@ -58,7 +62,11 @@ public class VerificationCheckClient {
                         response.body());
                 return null;
             }
-            return objectMapper.readValue(response.body(), VerificationResponse.class);
+            try {
+                return objectMapper.readValue(response.body(), VerificationResponse.class);
+            } catch(InvalidDefinitionException ex) {
+                throw new ResponseParseError(objectMapper.readTree(response.body()));
+            }
         } catch (URISyntaxException | IOException e) {
             logger.error("Couldn't verify certificate", e);
             return null;
@@ -74,8 +82,9 @@ public class VerificationCheckClient {
      * @param hCertPayload payload as sent with the original request
      * @return the decoded certificate if it decodeable and valid, null otherwise
      * @throws ValidationException
+     * @throws ResponseParseError
      */
-    public VerificationResponse validate(HCertPayload hCertPayload) throws InterruptedException, ValidationException {
+    public VerificationResponse validate(HCertPayload hCertPayload) throws InterruptedException, ValidationException, ResponseParseError {
         final var verificationResponse = verify(hCertPayload);
         if (verificationResponse != null && verificationResponse.getSuccessState() != null) {
             return verificationResponse;
