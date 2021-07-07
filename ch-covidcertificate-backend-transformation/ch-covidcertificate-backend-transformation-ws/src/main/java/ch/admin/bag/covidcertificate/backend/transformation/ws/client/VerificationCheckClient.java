@@ -85,7 +85,7 @@ public class VerificationCheckClient {
      * @param hCertPayload payload as sent with the original request
      * @return the decoded certificate if it decodeable and its signature is valid, null otherwise
      */
-    public DccHolder isValidSig(HCertPayload hCertPayload) {
+    public DccHolder isValidSig(HCertPayload hCertPayload) throws InterruptedException {
         final var verificationResponse = verify(hCertPayload);
         if (verificationResponse != null
                 && (verificationResponse.getSuccessState() != null
