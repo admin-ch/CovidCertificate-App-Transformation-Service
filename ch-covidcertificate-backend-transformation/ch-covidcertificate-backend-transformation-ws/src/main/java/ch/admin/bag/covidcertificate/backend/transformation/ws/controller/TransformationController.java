@@ -107,11 +107,9 @@ public class TransformationController {
         var exp = Instant.ofEpochSecond((int)dccHolder.get("expirationTime").asDouble());
         var nowPlus48 = Instant.now().plus(Duration.ofHours(48));
         if(nowPlus48.toEpochMilli() < exp.toEpochMilli()) {
-            transformPayload.setExp(
-                Integer.valueOf((int) (nowPlus48.toEpochMilli() / 1000)));
+            transformPayload.setExp(nowPlus48.toEpochMilli());
         } else {
-             transformPayload.setExp(
-                Integer.valueOf((int) (exp.toEpochMilli() / 1000)));
+             transformPayload.setExp(exp.toEpochMilli());
         }
         
 

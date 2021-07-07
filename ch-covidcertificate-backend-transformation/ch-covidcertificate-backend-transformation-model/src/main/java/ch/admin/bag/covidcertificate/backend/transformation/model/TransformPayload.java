@@ -13,7 +13,7 @@ package ch.admin.bag.covidcertificate.backend.transformation.model;
 public class TransformPayload {
     private Person nam;
     private String dob;
-    private Integer exp;
+    private Long exp;
 
     public Person getNam() {
         return this.nam;
@@ -31,11 +31,11 @@ public class TransformPayload {
         this.dob = dob;
     }
 
-    public Integer getExp() {
+    public Long getExp() {
         return this.exp;
     }
 
-    public void setExp(Integer exp) {
+    public void setExp(Long exp) {
         this.exp = exp;
     }
 }
