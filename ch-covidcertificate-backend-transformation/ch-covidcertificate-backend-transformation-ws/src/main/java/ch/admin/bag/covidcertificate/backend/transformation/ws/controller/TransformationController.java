@@ -85,10 +85,13 @@ public class TransformationController {
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
             throws IOException, URISyntaxException, InterruptedException {
+        // Decode and verify hcert
         final var dccHolder = verificationCheckClient.isValid(hCertPayload);
         if (dccHolder == null) {
             return ResponseEntity.badRequest().build();
         }
+
+        // Create payload for qr light endpoint
         var euCert = dccHolder.getEuDGC();
         var name = euCert.getPerson();
 
@@ -103,6 +106,7 @@ public class TransformationController {
         transformPayload.setDob(euCert.getDateOfBirth());
         transformPayload.setExp(Integer.valueOf((int) (dccHolder.getExpirationTime().toEpochMilli()/1000)));
 
+        // Get and forward light certificate
         var transformResponse = oauthWebClient.getWebClient()
         .post()
         .uri(lightCertificateEnpoint)
