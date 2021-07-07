@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <spring-boot-version>2.4.5</spring-boot-version>
+        <spring-boot-version>2.5.2</spring-boot-version>
         <spring-cloud-connectors-version>2.2.13.RELEASE</spring-cloud-connectors-version>
 
         <itCoverageAgent/>
