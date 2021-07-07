@@ -90,7 +90,7 @@ class TransformationControllerTest extends BaseControllerTest {
                         .getResponse();
         final var responsePayload =
                 objectMapper.readValue(response.getContentAsString(), CertLightPayload.class);
-        assertEquals(certLightMock.getQrcode(), responsePayload.getQrcode());
+        assertEquals(certLightMock.getQrCode(), responsePayload.getQrCode());
     }
 
     @Test
