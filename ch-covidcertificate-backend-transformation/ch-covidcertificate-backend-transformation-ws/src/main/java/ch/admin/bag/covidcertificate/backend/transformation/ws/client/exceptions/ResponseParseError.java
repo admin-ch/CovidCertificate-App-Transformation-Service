@@ -6,6 +6,7 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 
 public class ResponseParseError extends Exception {
     private final JsonNode state;
@@ -14,6 +15,15 @@ public class ResponseParseError extends Exception {
     }
 
     public String getState() {
-        return state.toPrettyString();
+        if(state == null) {
+            return "UNKNOWN ERROR";
+        }
+        if(!(state.get("invalidState") instanceof NullNode)) {
+            return state.get("invalidState").toPrettyString();
+        }
+        if(!(state.get("errorState") instanceof NullNode)){
+            return state.get("errorState").toPrettyString();
+        }
+        return "UNKNOWN ERROR";
     }
 }
