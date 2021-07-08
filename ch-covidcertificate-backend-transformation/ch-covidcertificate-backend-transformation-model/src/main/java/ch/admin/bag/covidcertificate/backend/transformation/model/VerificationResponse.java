@@ -1,7 +1,6 @@
 package ch.admin.bag.covidcertificate.backend.transformation.model;
 
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.DccHolder;
-import ch.admin.bag.covidcertificate.sdk.core.models.state.VerificationState;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.VerificationState.ERROR;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.VerificationState.INVALID;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.VerificationState.SUCCESS;

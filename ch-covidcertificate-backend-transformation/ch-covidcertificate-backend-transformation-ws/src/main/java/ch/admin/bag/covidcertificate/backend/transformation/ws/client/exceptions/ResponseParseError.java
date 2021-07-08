@@ -16,7 +16,7 @@ public class ResponseParseError extends Exception {
 
     public String getState() {
         if(state == null) {
-            return "UNKNOWN ERROR";
+            return "{\"errorCode\": \"S|UNK\"}";
         }
         if(!(state.get("invalidState") instanceof NullNode)) {
             return state.get("invalidState").toPrettyString();
@@ -24,6 +24,6 @@ public class ResponseParseError extends Exception {
         if(!(state.get("errorState") instanceof NullNode)){
             return state.get("errorState").toPrettyString();
         }
-        return "UNKNOWN ERROR";
+        return "{\"errorCode\": \"S|UNK\"}";
     }
 }
