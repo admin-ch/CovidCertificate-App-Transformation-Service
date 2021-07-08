@@ -91,7 +91,10 @@ public class VerificationCheckClient {
         final var verificationResponse = verify(hCertPayload);
         if (verificationResponse != null && verificationResponse.getSuccessState() != null) {
             return verificationResponse;
-        } else {
+        } else if (verificationResponse == null) {
+            throw new ResponseParseError(null);
+        } 
+        else {
             throw new ValidationException(verificationResponse.getErrorState() != null? verificationResponse.getErrorState(): verificationResponse.getInvalidState());
         }
     }
