@@ -17,7 +17,7 @@ public class SchedulingConfig {
 
     private final RateLimitDataService rateLimitDataService;
 
-    @Value("${ws.rate-limit.retention-period:PT24H")
+    @Value("${ws.rate-limit.retention-period:PT24H}")
     private Duration retentionPeriod;
 
     public SchedulingConfig(RateLimitDataService rateLimitDataService) {
