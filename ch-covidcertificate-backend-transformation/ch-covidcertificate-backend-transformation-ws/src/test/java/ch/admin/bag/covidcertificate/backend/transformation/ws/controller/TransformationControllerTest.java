@@ -93,21 +93,21 @@ class TransformationControllerTest extends BaseControllerTest {
         assertEquals(certLightMock.getQrCode(), responsePayload.getQrCode());
     }
 
-    @Test
-    void getPdfTest() throws Exception {
-        var hCertPayload = new HCertPayload();
-        hCertPayload.setHcert("HC1:example");
-        final MockHttpServletResponse response =
-                mockMvc.perform(
-                                post(BASE_URL + PDF_ENDPOINT)
-                                        .content(objectMapper.writeValueAsString(hCertPayload))
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .accept(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is2xxSuccessful())
-                        .andReturn()
-                        .getResponse();
-        final var responsePayload =
-                objectMapper.readValue(response.getContentAsString(), PdfPayload.class);
-        assertEquals(mockPdfPayload.getPdf(), responsePayload.getPdf());
-    }
+//     @Test
+//     void getPdfTest() throws Exception {
+//         var hCertPayload = new HCertPayload();
+//         hCertPayload.setHcert("HC1:example");
+//         final MockHttpServletResponse response =
+//                 mockMvc.perform(
+//                                 post(BASE_URL + PDF_ENDPOINT)
+//                                         .content(objectMapper.writeValueAsString(hCertPayload))
+//                                         .contentType(MediaType.APPLICATION_JSON)
+//                                         .accept(MediaType.APPLICATION_JSON))
+//                         .andExpect(status().is2xxSuccessful())
+//                         .andReturn()
+//                         .getResponse();
+//         final var responsePayload =
+//                 objectMapper.readValue(response.getContentAsString(), PdfPayload.class);
+//         assertEquals(mockPdfPayload.getPdf(), responsePayload.getPdf());
+//     }
 }

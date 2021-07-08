@@ -35,8 +35,7 @@ public class TestConfig {
     private String verificationCheckEndpoint;
 
     @Bean
-    public TransformationController transformationController(
-            MockHelper mockHelper, VerificationCheckClient verificationCheckClient) {
+    public TransformationController transformationController(VerificationCheckClient verificationCheckClient) {
         return new TransformationController("", verificationCheckClient, null, ZoneId.systemDefault());
     }
 
