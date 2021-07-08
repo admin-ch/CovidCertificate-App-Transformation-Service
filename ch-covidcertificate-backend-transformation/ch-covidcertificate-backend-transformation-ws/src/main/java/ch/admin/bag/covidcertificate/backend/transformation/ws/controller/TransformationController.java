@@ -18,7 +18,6 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.TransformPaylo
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
 import ch.ubique.openapi.docannotations.Documentation;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,19 +51,16 @@ public class TransformationController {
     private final VerificationCheckClient verificationCheckClient;
     private final OauthWebClient oauthWebClient;
     private final ObjectMapper objectMapper;
-    private final MockHelper mockHelper;
     private final ZoneId verificationZoneId;
 
     public TransformationController(
             String lightCertificateEnpoint,
             VerificationCheckClient verificationCheckClient,
             OauthWebClient tokenReceiver,
-            MockHelper mockHelper,
             ZoneId verificationZoneId) {
         this.lightCertificateEnpoint = lightCertificateEnpoint;
         this.verificationCheckClient = verificationCheckClient;
         this.oauthWebClient = tokenReceiver;
-        this.mockHelper = mockHelper;
         this.verificationZoneId = verificationZoneId;
         this.objectMapper = new ObjectMapper();
     }
@@ -150,7 +146,7 @@ public class TransformationController {
     @PostMapping(path = "/pdf")
     public @ResponseBody ResponseEntity<PdfPayload> getPdf(
             @Valid @RequestBody HCertPayload hCertPayload) throws IOException {
-        return ResponseEntity.ok(mockHelper.getCertPdfMock(hCertPayload));
+        return ResponseEntity.notFound().build();
     }
 
 

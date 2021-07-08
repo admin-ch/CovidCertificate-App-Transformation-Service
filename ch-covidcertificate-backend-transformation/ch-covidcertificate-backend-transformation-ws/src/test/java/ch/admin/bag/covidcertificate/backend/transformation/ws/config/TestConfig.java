@@ -37,12 +37,7 @@ public class TestConfig {
     @Bean
     public TransformationController transformationController(
             MockHelper mockHelper, VerificationCheckClient verificationCheckClient) {
-        return new TransformationController("", verificationCheckClient, null, mockHelper, ZoneId.systemDefault());
-    }
-
-    @Bean
-    public MockHelper mockHelper() {
-        return new MockHelper(mockUrl);
+        return new TransformationController("", verificationCheckClient, null, ZoneId.systemDefault());
     }
 
     @Bean
