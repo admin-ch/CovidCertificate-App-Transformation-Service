@@ -56,20 +56,23 @@ public class TransformationController {
     private final RateLimitDataService rateLimitDataService;
     private final ObjectMapper objectMapper;
     private final ZoneId verificationZoneId;
+    private final int rateLimit;
     private final boolean debug;
 
     public TransformationController(
-        String lightCertificateEnpoint,
-        VerificationCheckClient verificationCheckClient,
-        OauthWebClient tokenReceiver,
-        RateLimitDataService rateLimitDataService,
-        ZoneId verificationZoneId,
-        boolean debug) {
+            String lightCertificateEnpoint,
+            VerificationCheckClient verificationCheckClient,
+            OauthWebClient tokenReceiver,
+            RateLimitDataService rateLimitDataService,
+            ZoneId verificationZoneId,
+            int rateLimit,
+            boolean debug) {
         this.lightCertificateEnpoint = lightCertificateEnpoint;
         this.verificationCheckClient = verificationCheckClient;
         this.oauthWebClient = tokenReceiver;
         this.rateLimitDataService = rateLimitDataService;
         this.verificationZoneId = verificationZoneId;
+        this.rateLimit = rateLimit;
         this.objectMapper = new ObjectMapper();
         this.debug = debug;
     }
@@ -104,6 +107,7 @@ public class TransformationController {
         }
 
         // TODO: Check rate-limit: Read UVCI, hash, read current rate, increase or interrupt
+        
 
         // Create payload for qr light endpoint
         var euCert = (DccCert) certificateHolder.getCertificate();
