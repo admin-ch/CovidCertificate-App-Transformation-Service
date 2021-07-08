@@ -10,6 +10,7 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
+import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
@@ -52,19 +53,22 @@ public class TransformationController {
     private final String lightCertificateEnpoint;
     private final VerificationCheckClient verificationCheckClient;
     private final OauthWebClient oauthWebClient;
+    private final RateLimitDataService rateLimitDataService;
     private final ObjectMapper objectMapper;
     private final ZoneId verificationZoneId;
     private final boolean debug;
 
     public TransformationController(
-            String lightCertificateEndpoint,
-            VerificationCheckClient verificationCheckClient,
-            OauthWebClient tokenReceiver,
-            ZoneId verificationZoneId,
-            boolean debug) {
-        this.lightCertificateEnpoint = lightCertificateEndpoint;
+        String lightCertificateEnpoint,
+        VerificationCheckClient verificationCheckClient,
+        OauthWebClient tokenReceiver,
+        RateLimitDataService rateLimitDataService,
+        ZoneId verificationZoneId,
+        boolean debug) {
+        this.lightCertificateEnpoint = lightCertificateEnpoint;
         this.verificationCheckClient = verificationCheckClient;
         this.oauthWebClient = tokenReceiver;
+        this.rateLimitDataService = rateLimitDataService;
         this.verificationZoneId = verificationZoneId;
         this.objectMapper = new ObjectMapper();
         this.debug = debug;

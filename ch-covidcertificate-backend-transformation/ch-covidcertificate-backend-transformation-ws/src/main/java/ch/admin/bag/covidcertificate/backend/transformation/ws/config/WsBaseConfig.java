@@ -10,6 +10,8 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
+import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
+import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLimitDataServiceImpl;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
@@ -18,6 +20,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import javax.sql.DataSource;
+import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,16 +53,22 @@ public abstract class WsBaseConfig {
     @Value("${verification.zone-id:default}")
     private String namedZoneId;
 
+    public abstract DataSource dataSource();
+
+    public abstract Flyway flyway();
+
     @Bean
     public TransformationController transformationController(
             VerificationCheckClient verificationCheckClient,
             OauthWebClient tokenReceiver,
+            RateLimitDataService rateLimitDataService,
             ZoneId verificationZoneId,
             boolean debug) {
         return new TransformationController(
                 lightCertificateEnpoint,
                 verificationCheckClient,
                 tokenReceiver,
+                rateLimitDataService,
                 verificationZoneId,
                 debug);
     }
@@ -89,5 +99,10 @@ public abstract class WsBaseConfig {
     @Bean
     public VerificationCheckClient verificationCheckClient() {
         return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint);
+    }
+
+    @Bean
+    public RateLimitDataService rateLimitDataService(DataSource dataSource) {
+        return new JdbcRateLimitDataServiceImpl(dataSource);
     }
 }

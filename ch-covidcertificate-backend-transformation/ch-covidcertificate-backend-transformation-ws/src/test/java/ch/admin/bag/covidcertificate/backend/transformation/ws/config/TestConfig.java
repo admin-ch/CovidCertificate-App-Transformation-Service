@@ -9,37 +9,41 @@
  */
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
-
-import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
-import java.time.ZoneId;
-import org.springframework.beans.factory.annotation.Value;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
+import javax.sql.DataSource;
+import org.flywaydb.core.Flyway;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 
 @Profile("test")
 @Configuration
-public class TestConfig {
+public class TestConfig extends WsBaseConfig {
 
-    @Value("${mock.url}")
-    private String mockUrl;
+    @Autowired DataSource dataSource;
 
-    @Value("${verification.check.baseurl}")
-    private String verificationCheckBaseUrl;
-
-    @Value("${verification.check.endpoint}")
-    private String verificationCheckEndpoint;
-
-    @Bean
-    public TransformationController transformationController(
-            VerificationCheckClient verificationCheckClient) {
-        return new TransformationController(
-                "", verificationCheckClient, null, ZoneId.systemDefault(), true);
+    @Override
+    public DataSource dataSource() {
+        return dataSource;
     }
 
     @Bean
-    public VerificationCheckClient verificationCheckClient() {
-        return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint);
+    @Override
+    public Flyway flyway() {
+        final var flyway =
+                Flyway.configure()
+                        .dataSource(dataSource)
+                        .locations("classpath:/db/migration/pgsql")
+                        .validateOnMigrate(true)
+                        .load();
+        flyway.migrate();
+        return flyway;
+    }
+
+    @Bean
+    public OauthWebClient tokenReceiver() {
+        return null;
     }
 }
