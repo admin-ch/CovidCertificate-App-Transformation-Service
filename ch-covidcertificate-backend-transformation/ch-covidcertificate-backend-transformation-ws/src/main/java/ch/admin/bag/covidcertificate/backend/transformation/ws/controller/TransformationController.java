@@ -19,6 +19,7 @@ import ch.admin.bag.covidcertificate.backend.transformation.ws.client.Verificati
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
+import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.ubique.openapi.docannotations.Documentation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -93,13 +94,13 @@ public class TransformationController {
             throws IOException, InterruptedException, ValidationException, ResponseParseError {
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validate(hCertPayload);
-        final var dccHolder = validationResponse.getHcertDecoded();
-        if (dccHolder == null) {
+        final var certificateHolder = validationResponse.getHcertDecoded();
+        if (certificateHolder == null) {
             return ResponseEntity.badRequest().build();
         }
 
         // Create payload for qr light endpoint
-        var euCert = dccHolder.getEuDGC();
+        var euCert = (DccCert) certificateHolder.getCertificate();
         var name = euCert.getPerson();
 
         var person = new Person();
