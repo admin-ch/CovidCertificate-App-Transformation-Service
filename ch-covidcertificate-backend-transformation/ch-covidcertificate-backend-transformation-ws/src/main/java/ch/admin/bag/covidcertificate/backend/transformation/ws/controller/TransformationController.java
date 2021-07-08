@@ -19,14 +19,19 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.TransformPaylo
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.EmptyCertificateException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.RateLimitExceededException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.ubique.openapi.docannotations.Documentation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Base64;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +103,10 @@ public class TransformationController {
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
-            throws IOException, InterruptedException, ValidationException, ResponseParseError {
+            throws IOException, InterruptedException, ValidationException, ResponseParseError,
+                    NoSuchAlgorithmException, RateLimitExceededException,
+                    EmptyCertificateException {
+
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validate(hCertPayload);
         final var certificateHolder = validationResponse.getHcertDecoded();
@@ -106,8 +114,9 @@ public class TransformationController {
             return ResponseEntity.badRequest().build();
         }
 
-        // TODO: Check rate-limit: Read UVCI, hash, read current rate, increase or interrupt
+        var euCert = dccHolder.getEuDGC();
 
+        checkRateLimit(euCert);
 
         // Create payload for qr light endpoint
         var euCert = (DccCert) certificateHolder.getCertificate();
@@ -149,6 +158,30 @@ public class TransformationController {
         return ResponseEntity.ok(certLight);
     }
 
+    private void checkRateLimit(Eudgc euCert)
+            throws EmptyCertificateException, NoSuchAlgorithmException, RateLimitExceededException {
+        final String uvci;
+        if (euCert.getVaccinations() != null && !euCert.getVaccinations().isEmpty()) {
+            uvci = euCert.getVaccinations().get(0).getCertificateIdentifier();
+        } else if (euCert.getTests() != null && !euCert.getTests().isEmpty()) {
+            uvci = euCert.getTests().get(0).getCertificateIdentifier();
+        } else if (euCert.getPastInfections() != null && !euCert.getPastInfections().isEmpty()) {
+            uvci = euCert.getPastInfections().get(0).getCertificateIdentifier();
+        } else {
+            throw new EmptyCertificateException();
+        }
+
+        final var digest = MessageDigest.getInstance("SHA-256");
+        final var uvciHash = Base64.getEncoder().encodeToString(digest.digest(uvci.getBytes()));
+
+        final int count = rateLimitDataService.getCurrentRate(uvciHash);
+        if (count < rateLimit) {
+            rateLimitDataService.increaseRate(uvciHash);
+        } else {
+            throw new RateLimitExceededException(uvciHash);
+        }
+    }
+
     @Documentation(
             description =
                     "Checks that the certificate was issued by the Swiss authorities and generates a new pdf",
@@ -186,5 +219,19 @@ public class TransformationController {
         } else {
             return responseBuilder.build();
         }
+    }
+
+    @ExceptionHandler(EmptyCertificateException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<Void> euDgcIsEmpty(EmptyCertificateException e) {
+        logger.error("HCert was decoded but didn't contain any entries!");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ResponseEntity<Void> rateLimitExceeded(RateLimitExceededException e) {
+        logger.error("Rate limit exceeded for uvci-hash: {}", e.getUvciHash());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
 }
