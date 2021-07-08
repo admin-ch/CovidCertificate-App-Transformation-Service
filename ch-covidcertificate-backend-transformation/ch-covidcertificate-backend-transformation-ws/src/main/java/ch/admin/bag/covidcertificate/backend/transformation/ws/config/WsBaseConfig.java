@@ -47,8 +47,9 @@ public abstract class WsBaseConfig {
     public TransformationController transformationController(
             MockHelper mockHelper,
             VerificationCheckClient verificationCheckClient,
-            OauthWebClient tokenReceiver) {
-        return new TransformationController(lightCertificateEnpoint, verificationCheckClient, tokenReceiver, mockHelper(), verificationZoneId());
+            OauthWebClient tokenReceiver,
+            ZoneId verificationZoneId) {
+        return new TransformationController(lightCertificateEnpoint, verificationCheckClient, tokenReceiver, mockHelper, verificationZoneId);
     }
 
     @Bean
