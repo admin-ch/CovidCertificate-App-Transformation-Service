@@ -1,6 +1,5 @@
 package ch.admin.bag.covidcertificate.backend.transformation.data;
 
-import ch.admin.bag.covidcertificate.backend.transformation.model.ratelimit.CurrentRate;
 import java.time.Duration;
 
 public interface RateLimitDataService {
@@ -9,9 +8,9 @@ public interface RateLimitDataService {
      * Gets the current number of entries in the database for the given uvciHash
      *
      * @param uvciHash string for which to count the number of entries
-     * @return number of entries and the current string in a CurrentRate object
+     * @return number of entries
      */
-    public CurrentRate getCurrentRate(String uvciHash);
+    public int getCurrentRate(String uvciHash);
 
     /**
      * Adds an entry to the database to indicate a rate-increase
