@@ -16,7 +16,7 @@ public interface RateLimitDataService {
     /**
      * Adds an entry to the database to indicate a rate-increase
      *
-     * @param uvciHash identifier to use in the new entry
+     * @param uvciHash non-empty identifier to use in the new entry
      */
     public void increaseRate(String uvciHash);
 
