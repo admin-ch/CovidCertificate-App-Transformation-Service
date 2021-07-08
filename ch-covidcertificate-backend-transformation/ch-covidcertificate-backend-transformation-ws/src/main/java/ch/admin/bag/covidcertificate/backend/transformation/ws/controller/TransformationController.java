@@ -107,7 +107,7 @@ public class TransformationController {
         }
 
         // TODO: Check rate-limit: Read UVCI, hash, read current rate, increase or interrupt
-        
+
 
         // Create payload for qr light endpoint
         var euCert = (DccCert) certificateHolder.getCertificate();
