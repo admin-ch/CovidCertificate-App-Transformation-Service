@@ -9,6 +9,7 @@ import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckSignatureState;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -64,8 +65,10 @@ public class VerificationCheckClient {
             }
             try {
                 return objectMapper.readValue(response.body(), VerificationResponse.class);
-            } catch(InvalidDefinitionException ex) {
+            } catch(JsonMappingException ex) {
                 throw new ResponseParseError(objectMapper.readTree(response.body()));
+            } catch(Exception e) {
+                throw new ResponseParseError(null);
             }
         } catch (URISyntaxException | IOException e) {
             logger.error("Couldn't verify certificate", e);

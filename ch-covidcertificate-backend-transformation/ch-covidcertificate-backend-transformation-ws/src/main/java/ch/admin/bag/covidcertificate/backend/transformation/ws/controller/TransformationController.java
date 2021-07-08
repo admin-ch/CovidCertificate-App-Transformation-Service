@@ -163,7 +163,7 @@ public class TransformationController {
     @ExceptionHandler(ResponseParseError.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> validationParseFailed(ResponseParseError e) {
-        logger.error("Validation failed: {}", e.getState());
+        logger.error("Validation failed (and result could not be parsed): {}", e.getState());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getState());
     }
 
