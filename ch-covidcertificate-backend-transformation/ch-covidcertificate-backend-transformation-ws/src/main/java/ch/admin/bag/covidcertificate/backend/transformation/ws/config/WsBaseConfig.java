@@ -13,16 +13,23 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
-
 import java.time.ZoneId;
-
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 
 @Configuration
 public abstract class WsBaseConfig {
+
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Autowired private Environment env;
 
     @Value("${mock.url:test}")
     private String mockUrl;
@@ -46,8 +53,23 @@ public abstract class WsBaseConfig {
     public TransformationController transformationController(
             VerificationCheckClient verificationCheckClient,
             OauthWebClient tokenReceiver,
-            ZoneId verificationZoneId) {
-        return new TransformationController(lightCertificateEnpoint, verificationCheckClient, tokenReceiver, verificationZoneId);
+            ZoneId verificationZoneId,
+            boolean debug) {
+        return new TransformationController(
+                lightCertificateEnpoint,
+                verificationCheckClient,
+                tokenReceiver,
+                verificationZoneId,
+                debug);
+    }
+
+    @Bean
+    public boolean debug() {
+        boolean debug = List.of(env.getActiveProfiles()).contains("debug");
+        if (debug) {
+            logger.info("debug profile is active");
+        }
+        return debug;
     }
 
     @Bean

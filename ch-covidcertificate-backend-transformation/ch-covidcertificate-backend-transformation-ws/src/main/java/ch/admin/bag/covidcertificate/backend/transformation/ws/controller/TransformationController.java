@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -52,17 +53,20 @@ public class TransformationController {
     private final OauthWebClient oauthWebClient;
     private final ObjectMapper objectMapper;
     private final ZoneId verificationZoneId;
+    private final boolean debug;
 
     public TransformationController(
-            String lightCertificateEnpoint,
+            String lightCertificateEndpoint,
             VerificationCheckClient verificationCheckClient,
             OauthWebClient tokenReceiver,
-            ZoneId verificationZoneId) {
-        this.lightCertificateEnpoint = lightCertificateEnpoint;
+            ZoneId verificationZoneId,
+            boolean debug) {
+        this.lightCertificateEnpoint = lightCertificateEndpoint;
         this.verificationCheckClient = verificationCheckClient;
         this.oauthWebClient = tokenReceiver;
         this.verificationZoneId = verificationZoneId;
         this.objectMapper = new ObjectMapper();
+        this.debug = debug;
     }
 
     @Documentation(
@@ -149,19 +153,27 @@ public class TransformationController {
         return ResponseEntity.notFound().build();
     }
 
-
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> validationFailed(ValidationException e) {
-        logger.error("Validation failed: {}", e.getState());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getState());
+        BodyBuilder responseBuilder = ResponseEntity.status(HttpStatus.BAD_REQUEST);
+        if (debug) {
+            logger.error("Validation failed: {}", e.getState());
+            return responseBuilder.body(e.getState());
+        } else {
+            return responseBuilder.build();
+        }
     }
 
     @ExceptionHandler(ResponseParseError.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> validationParseFailed(ResponseParseError e) {
-        logger.error("Validation failed (and result could not be parsed): {}", e.getState());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getState());
+        BodyBuilder responseBuilder = ResponseEntity.status(HttpStatus.BAD_REQUEST);
+        if (debug) {
+            logger.error("Validation failed (and result could not be parsed): {}", e.getState());
+            return responseBuilder.body(e.getState());
+        } else {
+            return responseBuilder.build();
+        }
     }
-
 }
