@@ -4,14 +4,9 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
-import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.DccHolder;
-import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckSignatureState;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.InvalidDefinitionException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import java.io.IOException;
@@ -46,7 +41,8 @@ public class VerificationCheckClient {
                         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
-    private VerificationResponse verify(HCertPayload hCertPayload) throws InterruptedException, ResponseParseError {
+    private VerificationResponse verify(HCertPayload hCertPayload)
+            throws InterruptedException, ResponseParseError {
         final String hCert;
         try {
             hCert = objectMapper.writeValueAsString(hCertPayload);
@@ -57,17 +53,14 @@ public class VerificationCheckClient {
                             .build();
             final HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
             if (response.statusCode() != HttpStatus.OK.value()) {
-                logger.info(
-                        "Certificate couldn't be decoded: HTTP {}: {}",
-                        response.statusCode(),
-                        response.body());
+                logger.info("Certificate couldn't be decoded: HTTP {}", response.statusCode());
                 return null;
             }
             try {
                 return objectMapper.readValue(response.body(), VerificationResponse.class);
-            } catch(JsonMappingException ex) {
+            } catch (JsonMappingException ex) {
                 throw new ResponseParseError(objectMapper.readTree(response.body()));
-            } catch(Exception e) {
+            } catch (Exception e) {
                 throw new ResponseParseError(null);
             }
         } catch (URISyntaxException | IOException e) {
@@ -87,15 +80,18 @@ public class VerificationCheckClient {
      * @throws ValidationException
      * @throws ResponseParseError
      */
-    public VerificationResponse validate(HCertPayload hCertPayload) throws InterruptedException, ValidationException, ResponseParseError {
+    public VerificationResponse validate(HCertPayload hCertPayload)
+            throws InterruptedException, ValidationException, ResponseParseError {
         final var verificationResponse = verify(hCertPayload);
         if (verificationResponse != null && verificationResponse.getSuccessState() != null) {
             return verificationResponse;
         } else if (verificationResponse == null) {
             throw new ResponseParseError(null);
-        } 
-        else {
-            throw new ValidationException(verificationResponse.getErrorState() != null? verificationResponse.getErrorState(): verificationResponse.getInvalidState());
+        } else {
+            throw new ValidationException(
+                    verificationResponse.getErrorState() != null
+                            ? verificationResponse.getErrorState()
+                            : verificationResponse.getInvalidState());
         }
     }
-} 
+}
