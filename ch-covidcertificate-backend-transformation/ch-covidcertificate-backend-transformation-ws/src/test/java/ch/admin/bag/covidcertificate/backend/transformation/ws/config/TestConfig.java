@@ -13,6 +13,9 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
+
+import java.time.ZoneId;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +37,7 @@ public class TestConfig {
     @Bean
     public TransformationController transformationController(
             MockHelper mockHelper, VerificationCheckClient verificationCheckClient) {
-        return new TransformationController("", verificationCheckClient, null, mockHelper);
+        return new TransformationController("", verificationCheckClient, null, mockHelper, ZoneId.systemDefault());
     }
 
     @Bean

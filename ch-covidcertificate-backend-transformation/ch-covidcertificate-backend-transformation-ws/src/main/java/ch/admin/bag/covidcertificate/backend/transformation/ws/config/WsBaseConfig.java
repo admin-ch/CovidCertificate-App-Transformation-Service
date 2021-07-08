@@ -14,6 +14,9 @@ import ch.admin.bag.covidcertificate.backend.transformation.ws.client.Verificati
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.MockHelper;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
+
+import java.time.ZoneId;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,17 +40,29 @@ public abstract class WsBaseConfig {
     @Value("${verification.check.endpoint}")
     private String verificationCheckEndpoint;
 
+    @Value("${verification.zone-id:default}")
+    private String namedZoneId;
+
     @Bean
     public TransformationController transformationController(
             MockHelper mockHelper,
             VerificationCheckClient verificationCheckClient,
             OauthWebClient tokenReceiver) {
-        return new TransformationController(lightCertificateEnpoint, verificationCheckClient, tokenReceiver, mockHelper());
+        return new TransformationController(lightCertificateEnpoint, verificationCheckClient, tokenReceiver, mockHelper(), verificationZoneId());
     }
 
     @Bean
     public OauthWebClient tokenReceiver(ClientRegistrationRepository clientRegistration) {
         return new OauthWebClient(clientId, clientRegistration);
+    }
+
+    @Bean
+    public ZoneId verificationZoneId() {
+        try {
+            return ZoneId.of(namedZoneId);
+        } catch (Exception ex) {
+            return ZoneId.systemDefault();
+        }
     }
 
     @Bean

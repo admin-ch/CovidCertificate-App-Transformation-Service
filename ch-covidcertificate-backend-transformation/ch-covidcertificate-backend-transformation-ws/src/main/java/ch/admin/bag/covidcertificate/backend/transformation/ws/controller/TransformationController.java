@@ -41,7 +41,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.client.HttpStatusCodeException;
 
 @Controller
 @RequestMapping("/app/transform/v1")
@@ -54,17 +53,19 @@ public class TransformationController {
     private final OauthWebClient oauthWebClient;
     private final ObjectMapper objectMapper;
     private final MockHelper mockHelper;
+    private final ZoneId verificationZoneId;
 
     public TransformationController(
             String lightCertificateEnpoint,
             VerificationCheckClient verificationCheckClient,
             OauthWebClient tokenReceiver,
-            MockHelper mockHelper) {
+            MockHelper mockHelper,
+            ZoneId verificationZoneId) {
         this.lightCertificateEnpoint = lightCertificateEnpoint;
         this.verificationCheckClient = verificationCheckClient;
         this.oauthWebClient = tokenReceiver;
         this.mockHelper = mockHelper;
-
+        this.verificationZoneId = verificationZoneId;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -116,7 +117,7 @@ public class TransformationController {
                         .getSuccessState()
                         .getValidityRange()
                         .getValidUntil()
-                        .atZone(ZoneId.systemDefault())
+                        .atZone(verificationZoneId)
                         .toInstant()
                         .toEpochMilli();
         var nowPlus48 = Instant.now().plus(Duration.ofHours(48)).toEpochMilli();
