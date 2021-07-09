@@ -1,4 +1,4 @@
-package ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions;
+package ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions;
 
 public class RateLimitExceededException extends Exception {
     private final String uvciHash;

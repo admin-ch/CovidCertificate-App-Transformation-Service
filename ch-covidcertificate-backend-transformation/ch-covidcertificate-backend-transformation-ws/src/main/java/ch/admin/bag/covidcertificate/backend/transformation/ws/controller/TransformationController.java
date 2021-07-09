@@ -17,8 +17,8 @@ import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightC
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.EmptyCertificateException;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.RateLimitExceededException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.RateLimitExceededException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.ubique.openapi.docannotations.Documentation;

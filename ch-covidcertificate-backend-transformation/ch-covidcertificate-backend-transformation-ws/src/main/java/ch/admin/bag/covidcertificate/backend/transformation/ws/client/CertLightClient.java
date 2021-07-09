@@ -41,14 +41,14 @@ public class CertLightClient {
         person.setFnt(name.getStandardizedFamilyName());
         person.setGnt(name.getStandardizedGivenName());
 
+        var expiry =
+                validityRange.getValidUntil().atZone(verificationZoneId).toInstant().toEpochMilli();
+        var nowPlus48 = Instant.now().plus(Duration.ofHours(48)).toEpochMilli();
+
         var transformPayload = new TransformPayload();
         transformPayload.setNam(person);
         transformPayload.setDob(euCert.getDateOfBirth());
-
-        var exp =
-                validityRange.getValidUntil().atZone(verificationZoneId).toInstant().toEpochMilli();
-        var nowPlus48 = Instant.now().plus(Duration.ofHours(48)).toEpochMilli();
-        transformPayload.setExp(Math.min(exp, nowPlus48));
+        transformPayload.setExp(Math.min(expiry, nowPlus48));
 
         // Get and forward light certificate
         var transformResponse =

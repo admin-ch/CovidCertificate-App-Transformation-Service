@@ -1,8 +1,8 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.service;
 
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.EmptyCertificateException;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.RateLimitExceededException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.RateLimitExceededException;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
