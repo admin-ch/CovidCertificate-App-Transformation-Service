@@ -116,10 +116,10 @@ public abstract class WsBaseConfig {
     @Bean
     public LockProvider lockProvider(DataSource dataSource) {
         return new JdbcTemplateLockProvider(
-            JdbcTemplateLockProvider.Configuration.builder()
-                .withTableName("t_shedlock")
-                .withJdbcTemplate(new JdbcTemplate(dataSource))
-                .usingDbTime()
-                .build());
+                JdbcTemplateLockProvider.Configuration.builder()
+                        .withTableName("t_shedlock")
+                        .withJdbcTemplate(new JdbcTemplate(dataSource))
+                        .usingDbTime()
+                        .build());
     }
 }

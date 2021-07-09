@@ -10,8 +10,8 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.data.config;
 
-import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLimitDataServiceImpl;
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
+import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLimitDataServiceImpl;
 import javax.sql.DataSource;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
