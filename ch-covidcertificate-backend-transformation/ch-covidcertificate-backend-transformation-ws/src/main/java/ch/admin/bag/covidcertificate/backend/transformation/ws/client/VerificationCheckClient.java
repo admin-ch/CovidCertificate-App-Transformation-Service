@@ -2,11 +2,14 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.client;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.deserializer.CustomCovidCertificateDeserializer;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
+import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.CovidCertificate;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import java.io.IOException;
@@ -34,11 +37,15 @@ public class VerificationCheckClient {
         this.baseurl = baseurl;
         this.verifyEndpoint = verifyEndpoint;
         httpClient = HttpClient.newHttpClient();
+
         objectMapper =
                 new ObjectMapper()
                         .registerModule(new KotlinModule())
                         .registerModule(new JavaTimeModule())
                         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        SimpleModule deserialization = new SimpleModule();
+        deserialization.addDeserializer(CovidCertificate.class, new CustomCovidCertificateDeserializer());
+        objectMapper.registerModule(deserialization);
     }
 
     private VerificationResponse verify(HCertPayload hCertPayload)
