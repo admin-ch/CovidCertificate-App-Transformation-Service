@@ -12,8 +12,10 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
 import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLimitDataServiceImpl;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
 import java.time.ZoneId;
 import java.util.List;
@@ -65,18 +67,14 @@ public abstract class WsBaseConfig {
 
     @Bean
     public TransformationController transformationController(
-            VerificationCheckClient verificationCheckClient,
-            OauthWebClient tokenReceiver,
-            RateLimitDataService rateLimitDataService,
-            ZoneId verificationZoneId,
-            boolean debug) {
+        VerificationCheckClient verificationCheckClient,
+        CertLightClient certLightClient,
+        RateLimitService rateLimitService,
+        boolean debug) {
         return new TransformationController(
-                lightCertificateEnpoint,
                 verificationCheckClient,
-                tokenReceiver,
-                rateLimitDataService,
-                verificationZoneId,
-                rateLimit,
+                certLightClient,
+            rateLimitService,
                 debug);
     }
 
@@ -104,8 +102,19 @@ public abstract class WsBaseConfig {
     }
 
     @Bean
+    public RateLimitService rateLimitService(RateLimitDataService rateLimitDataService) {
+        return new RateLimitService(rateLimitDataService, rateLimit);
+    }
+
+    @Bean
     public VerificationCheckClient verificationCheckClient() {
         return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint);
+    }
+
+    @Bean
+    public CertLightClient certLightClient(
+            OauthWebClient oauthWebClient, ZoneId verificationZoneId) {
+        return new CertLightClient(lightCertificateEnpoint, oauthWebClient, verificationZoneId);
     }
 
     @Bean
