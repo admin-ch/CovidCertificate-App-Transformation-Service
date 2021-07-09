@@ -114,12 +114,11 @@ public class TransformationController {
             return ResponseEntity.badRequest().build();
         }
 
-        var euCert = dccHolder.getEuDGC();
+        var euCert = (DccCert) certificateHolder.getCertificate();
 
         checkRateLimit(euCert);
 
         // Create payload for qr light endpoint
-        var euCert = (DccCert) certificateHolder.getCertificate();
         var name = euCert.getPerson();
 
         var person = new Person();
@@ -158,7 +157,7 @@ public class TransformationController {
         return ResponseEntity.ok(certLight);
     }
 
-    private void checkRateLimit(Eudgc euCert)
+    private void checkRateLimit(DccCert euCert)
             throws EmptyCertificateException, NoSuchAlgorithmException, RateLimitExceededException {
         final String uvci;
         if (euCert.getVaccinations() != null && !euCert.getVaccinations().isEmpty()) {
