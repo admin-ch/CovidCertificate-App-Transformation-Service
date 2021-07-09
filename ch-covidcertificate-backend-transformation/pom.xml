@@ -20,6 +20,7 @@
         <spring-cloud-connectors-version>2.2.13.RELEASE</spring-cloud-connectors-version>
         <jackson-version>2.11.1</jackson-version>
         <testcontainers-version>1.15.2</testcontainers-version>
+        <shedlock.version>4.24.0</shedlock.version>
 
         <itCoverageAgent/>
 

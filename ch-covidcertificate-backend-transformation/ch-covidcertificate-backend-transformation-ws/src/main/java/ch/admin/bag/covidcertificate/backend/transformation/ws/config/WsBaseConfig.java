@@ -18,6 +18,8 @@ import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClie
 import java.time.ZoneId;
 import java.util.List;
 import javax.sql.DataSource;
+import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
 import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 
 @Configuration
@@ -108,5 +111,15 @@ public abstract class WsBaseConfig {
     @Bean
     public RateLimitDataService rateLimitDataService(DataSource dataSource) {
         return new JdbcRateLimitDataServiceImpl(dataSource);
+    }
+
+    @Bean
+    public LockProvider lockProvider(DataSource dataSource) {
+        return new JdbcTemplateLockProvider(
+            JdbcTemplateLockProvider.Configuration.builder()
+                .withTableName("t_shedlock")
+                .withJdbcTemplate(new JdbcTemplate(dataSource))
+                .usingDbTime()
+                .build());
     }
 }
