@@ -3,7 +3,7 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.service;
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.EmptyCertificateException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.RateLimitExceededException;
-import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.Eudgc;
+import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -18,7 +18,7 @@ public class RateLimitService {
         this.rateLimit = rateLimit;
     }
 
-    public void checkRateLimit(Eudgc euCert)
+    public void checkRateLimit(DccCert euCert)
             throws EmptyCertificateException, NoSuchAlgorithmException, RateLimitExceededException {
         final String uvci;
         if (euCert.getVaccinations() != null && !euCert.getVaccinations().isEmpty()) {

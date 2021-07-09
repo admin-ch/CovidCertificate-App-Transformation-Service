@@ -4,7 +4,7 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPaylo
 import ch.admin.bag.covidcertificate.backend.transformation.model.Person;
 import ch.admin.bag.covidcertificate.backend.transformation.model.TransformPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
-import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.Eudgc;
+import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.admin.bag.covidcertificate.sdk.core.verifier.nationalrules.ValidityRange;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +30,7 @@ public class CertLightClient {
         this.objectMapper = new ObjectMapper();
     }
 
-    public CertLightPayload getCertLight(Eudgc euCert, ValidityRange validityRange)
+    public CertLightPayload getCertLight(DccCert euCert, ValidityRange validityRange)
             throws JsonProcessingException {
 
         var name = euCert.getPerson();

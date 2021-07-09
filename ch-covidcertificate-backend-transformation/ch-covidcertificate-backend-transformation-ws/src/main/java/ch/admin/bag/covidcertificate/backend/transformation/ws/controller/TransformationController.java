@@ -10,7 +10,6 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
-import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
@@ -20,18 +19,11 @@ import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.EmptyCertificateException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.RateLimitExceededException;
-<<<<<<< HEAD
-import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
-import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
-=======
 import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
-import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.Eudgc;
->>>>>>> Moved rate-limit check to separate service
+import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.ubique.openapi.docannotations.Documentation;
 import java.io.IOException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,10 +52,10 @@ public class TransformationController {
     private final boolean debug;
 
     public TransformationController(
-        VerificationCheckClient verificationCheckClient,
-        CertLightClient certLightClient,
-        RateLimitService rateLimitService,
-        boolean debug) {
+            VerificationCheckClient verificationCheckClient,
+            CertLightClient certLightClient,
+            RateLimitService rateLimitService,
+            boolean debug) {
         this.verificationCheckClient = verificationCheckClient;
         this.certLightClient = certLightClient;
         this.rateLimitService = rateLimitService;
