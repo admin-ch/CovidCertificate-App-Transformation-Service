@@ -14,16 +14,14 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 public class VerificationCheckClient {
 
@@ -31,13 +29,13 @@ public class VerificationCheckClient {
 
     private final String baseurl;
     private final String verifyEndpoint;
-    private final HttpClient httpClient;
+    private final RestTemplate rt;
     private final ObjectMapper objectMapper;
 
-    public VerificationCheckClient(String baseurl, String verifyEndpoint) {
+    public VerificationCheckClient(String baseurl, String verifyEndpoint, RestTemplate rt) {
         this.baseurl = baseurl;
         this.verifyEndpoint = verifyEndpoint;
-        httpClient = HttpClient.newHttpClient();
+        this.rt = rt;
 
         objectMapper =
                 new ObjectMapper()
@@ -56,12 +54,11 @@ public class VerificationCheckClient {
      * @param hCertPayload payload as sent with the original request
      * @return the decoded certificate if it can be decoded and is valid, null if it can't be
      *     decoded
-     * @throws InterruptedException thread is interrupted while waiting for HTTP response
      * @throws ValidationException certificate isn't valid
      * @throws ResponseParseError response from validation endpoint couldn't be parsed
      */
     public VerificationResponse validate(HCertPayload hCertPayload)
-        throws InterruptedException, ValidationException, ResponseParseError {
+            throws ValidationException, ResponseParseError {
         final var verificationResponse = verify(hCertPayload);
         if (verificationResponse != null && verificationResponse.getSuccessState() != null) {
             return verificationResponse;
@@ -69,43 +66,48 @@ public class VerificationCheckClient {
             throw new ResponseParseError(null);
         } else {
             throw new ValidationException(
-                verificationResponse.getErrorState() != null
-                    ? verificationResponse.getErrorState()
-                    : verificationResponse.getInvalidState());
+                    verificationResponse.getErrorState() != null
+                            ? verificationResponse.getErrorState()
+                            : verificationResponse.getInvalidState());
         }
     }
 
-    private VerificationResponse verify(HCertPayload hCertPayload)
-            throws InterruptedException, ResponseParseError {
+    private VerificationResponse verify(HCertPayload hCertPayload) throws ResponseParseError {
         final String hCert;
         try {
             hCert = objectMapper.writeValueAsString(hCertPayload);
 
-            final var request =
-                    HttpRequest.newBuilder(new URI(baseurl + verifyEndpoint))
-                            .header("Content-Type", "application/json")
-                            .POST(BodyPublishers.ofString(hCert))
-                            .build();
-            final HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
+            final var uri =
+                    UriComponentsBuilder.fromHttpUrl(baseurl + verifyEndpoint).build().toUri();
+            final var request = RequestEntity.post(uri).headers(createRequestHeaders()).body(hCert);
+            final var response = rt.exchange(request, String.class);
 
-            if (response.statusCode() != HttpStatus.OK.value()) {
-                logger.info("Certificate couldn't be decoded: HTTP {}", response.statusCode());
+            if (!response.getStatusCode().equals(HttpStatus.OK)) {
+                logger.info(
+                        "Certificate couldn't be decoded: HTTP {}",
+                        response.getStatusCode().value());
                 return null;
             }
 
             return parseResponse(response);
-        } catch (URISyntaxException | IOException e) {
+        } catch (IOException e) {
             logger.error("Couldn't verify certificate", e);
             return null;
         }
     }
 
-    private VerificationResponse parseResponse(HttpResponse<String> response)
+    private HttpHeaders createRequestHeaders() {
+        var headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
+        return headers;
+    }
+
+    private VerificationResponse parseResponse(ResponseEntity<String> response)
             throws ResponseParseError, JsonProcessingException {
         try {
-            return objectMapper.readValue(response.body(), VerificationResponse.class);
+            return objectMapper.readValue(response.getBody(), VerificationResponse.class);
         } catch (JsonMappingException ex) {
-            throw new ResponseParseError(objectMapper.readTree(response.body()));
+            throw new ResponseParseError(objectMapper.readTree(response.getBody()));
         } catch (Exception e) {
             throw new ResponseParseError(null);
         }
