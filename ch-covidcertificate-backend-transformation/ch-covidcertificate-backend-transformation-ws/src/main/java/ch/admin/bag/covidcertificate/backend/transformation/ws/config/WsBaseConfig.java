@@ -12,9 +12,12 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
 import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLimitDataServiceImpl;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.util.RestTemplateHelper;
 import java.time.ZoneId;
 import java.util.List;
 import javax.sql.DataSource;
@@ -30,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public abstract class WsBaseConfig {
@@ -66,18 +70,42 @@ public abstract class WsBaseConfig {
     @Bean
     public TransformationController transformationController(
             VerificationCheckClient verificationCheckClient,
-            OauthWebClient tokenReceiver,
-            RateLimitDataService rateLimitDataService,
-            ZoneId verificationZoneId,
+            CertLightClient certLightClient,
+            RateLimitService rateLimitService,
             boolean debug) {
         return new TransformationController(
-                lightCertificateEnpoint,
-                verificationCheckClient,
-                tokenReceiver,
-                rateLimitDataService,
-                verificationZoneId,
-                rateLimit,
-                debug);
+                verificationCheckClient, certLightClient, rateLimitService, debug);
+    }
+
+    @Bean
+    public VerificationCheckClient verificationCheckClient(RestTemplate rt) {
+        return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint, rt);
+    }
+
+    @Bean
+    public CertLightClient certLightClient(
+            OauthWebClient oauthWebClient, ZoneId verificationZoneId) {
+        return new CertLightClient(lightCertificateEnpoint, oauthWebClient, verificationZoneId);
+    }
+
+    @Bean
+    public RateLimitDataService rateLimitDataService(DataSource dataSource) {
+        return new JdbcRateLimitDataServiceImpl(dataSource);
+    }
+
+    @Bean
+    public RateLimitService rateLimitService(RateLimitDataService rateLimitDataService) {
+        return new RateLimitService(rateLimitDataService, rateLimit);
+    }
+
+    @Bean
+    public LockProvider lockProvider(DataSource dataSource) {
+        return new JdbcTemplateLockProvider(
+                JdbcTemplateLockProvider.Configuration.builder()
+                        .withTableName("t_shedlock")
+                        .withJdbcTemplate(new JdbcTemplate(dataSource))
+                        .usingDbTime()
+                        .build());
     }
 
     @Bean
@@ -104,22 +132,7 @@ public abstract class WsBaseConfig {
     }
 
     @Bean
-    public VerificationCheckClient verificationCheckClient() {
-        return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint);
-    }
-
-    @Bean
-    public RateLimitDataService rateLimitDataService(DataSource dataSource) {
-        return new JdbcRateLimitDataServiceImpl(dataSource);
-    }
-
-    @Bean
-    public LockProvider lockProvider(DataSource dataSource) {
-        return new JdbcTemplateLockProvider(
-                JdbcTemplateLockProvider.Configuration.builder()
-                        .withTableName("t_shedlock")
-                        .withJdbcTemplate(new JdbcTemplate(dataSource))
-                        .usingDbTime()
-                        .build());
+    public RestTemplate restTemplate() {
+        return RestTemplateHelper.getRestTemplate();
     }
 }

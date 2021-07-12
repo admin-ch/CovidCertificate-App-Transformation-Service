@@ -10,33 +10,24 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
-import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
-import ch.admin.bag.covidcertificate.backend.transformation.model.Person;
-import ch.admin.bag.covidcertificate.backend.transformation.model.TransformPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.EmptyCertificateException;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.exceptions.RateLimitExceededException;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.RateLimitExceededException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.ubique.openapi.docannotations.Documentation;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.Base64;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.stereotype.Controller;
@@ -55,30 +46,19 @@ public class TransformationController {
 
     private static final Logger logger = LoggerFactory.getLogger(TransformationController.class);
 
-    private final String lightCertificateEnpoint;
     private final VerificationCheckClient verificationCheckClient;
-    private final OauthWebClient oauthWebClient;
-    private final RateLimitDataService rateLimitDataService;
-    private final ObjectMapper objectMapper;
-    private final ZoneId verificationZoneId;
-    private final int rateLimit;
+    private final CertLightClient certLightClient;
+    private final RateLimitService rateLimitService;
     private final boolean debug;
 
     public TransformationController(
-            String lightCertificateEnpoint,
             VerificationCheckClient verificationCheckClient,
-            OauthWebClient tokenReceiver,
-            RateLimitDataService rateLimitDataService,
-            ZoneId verificationZoneId,
-            int rateLimit,
+            CertLightClient certLightClient,
+            RateLimitService rateLimitService,
             boolean debug) {
-        this.lightCertificateEnpoint = lightCertificateEnpoint;
         this.verificationCheckClient = verificationCheckClient;
-        this.oauthWebClient = tokenReceiver;
-        this.rateLimitDataService = rateLimitDataService;
-        this.verificationZoneId = verificationZoneId;
-        this.rateLimit = rateLimit;
-        this.objectMapper = new ObjectMapper();
+        this.certLightClient = certLightClient;
+        this.rateLimitService = rateLimitService;
         this.debug = debug;
     }
 
@@ -115,70 +95,13 @@ public class TransformationController {
         }
 
         var euCert = (DccCert) certificateHolder.getCertificate();
+        final var validityRange = validationResponse.getSuccessState().getValidityRange();
 
-        checkRateLimit(euCert);
+        rateLimitService.checkRateLimit(euCert);
 
-        // Create payload for qr light endpoint
-        var name = euCert.getPerson();
+        CertLightPayload certLight = certLightClient.getCertLight(euCert, validityRange);
 
-        var person = new Person();
-        person.setFn(name.getFamilyName());
-        person.setGn(name.getGivenName());
-        person.setFnt(name.getStandardizedFamilyName());
-        person.setGnt(name.getStandardizedGivenName());
-
-        var transformPayload = new TransformPayload();
-        transformPayload.setNam(person);
-        transformPayload.setDob(euCert.getDateOfBirth());
-
-        var exp =
-                validationResponse
-                        .getSuccessState()
-                        .getValidityRange()
-                        .getValidUntil()
-                        .atZone(verificationZoneId)
-                        .toInstant()
-                        .toEpochMilli();
-        var nowPlus48 = Instant.now().plus(Duration.ofHours(48)).toEpochMilli();
-        transformPayload.setExp((exp < nowPlus48) ? exp : nowPlus48);
-
-        // Get and forward light certificate
-        var transformResponse =
-                oauthWebClient
-                        .getWebClient()
-                        .post()
-                        .uri(lightCertificateEnpoint)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(transformPayload)
-                        .retrieve()
-                        .bodyToMono(String.class)
-                        .block();
-        var certLight = objectMapper.readValue(transformResponse, CertLightPayload.class);
         return ResponseEntity.ok(certLight);
-    }
-
-    private void checkRateLimit(DccCert euCert)
-            throws EmptyCertificateException, NoSuchAlgorithmException, RateLimitExceededException {
-        final String uvci;
-        if (euCert.getVaccinations() != null && !euCert.getVaccinations().isEmpty()) {
-            uvci = euCert.getVaccinations().get(0).getCertificateIdentifier();
-        } else if (euCert.getTests() != null && !euCert.getTests().isEmpty()) {
-            uvci = euCert.getTests().get(0).getCertificateIdentifier();
-        } else if (euCert.getPastInfections() != null && !euCert.getPastInfections().isEmpty()) {
-            uvci = euCert.getPastInfections().get(0).getCertificateIdentifier();
-        } else {
-            throw new EmptyCertificateException();
-        }
-
-        final var digest = MessageDigest.getInstance("SHA-256");
-        final var uvciHash = Base64.getEncoder().encodeToString(digest.digest(uvci.getBytes()));
-
-        final int count = rateLimitDataService.getCurrentRate(uvciHash);
-        if (count < rateLimit) {
-            rateLimitDataService.increaseRate(uvciHash);
-        } else {
-            throw new RateLimitExceededException(uvciHash);
-        }
     }
 
     @Documentation(
