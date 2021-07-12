@@ -15,11 +15,14 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.CertificateFormatException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.MultipleEntriesException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.RateLimitExceededException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.util.DccHelper;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.ubique.openapi.docannotations.Documentation;
 import java.io.IOException;
@@ -73,7 +76,7 @@ public class TransformationController {
 
     @Documentation(
             description =
-                    "Validates the covid certificate transforms it into a lightcert, and returns it and its qr-code version",
+                    "Validates the covid certificate, transforms it into a light certificate, and returns it and its qr-code version",
             responses = {
                 "200 => Certificate could be validated and transformed",
                 "400 => Certificate can't be decoded or is invalid",
@@ -84,7 +87,8 @@ public class TransformationController {
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
             throws IOException, ValidationException, ResponseParseError, NoSuchAlgorithmException,
-                    RateLimitExceededException, EmptyCertificateException {
+                    RateLimitExceededException, EmptyCertificateException,
+                    MultipleEntriesException {
 
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validate(hCertPayload);
@@ -94,10 +98,11 @@ public class TransformationController {
         }
 
         var euCert = (DccCert) certificateHolder.getCertificate();
+
+        final String uvci = DccHelper.getUvci(euCert);
+        rateLimitService.checkRateLimit(uvci);
+
         final var validityRange = validationResponse.getSuccessState().getValidityRange();
-
-        rateLimitService.checkRateLimit(euCert);
-
         CertLightPayload certLight = certLightClient.getCertLight(euCert, validityRange);
 
         return ResponseEntity.ok(certLight);
@@ -142,10 +147,14 @@ public class TransformationController {
         }
     }
 
-    @ExceptionHandler(EmptyCertificateException.class)
+    @ExceptionHandler({EmptyCertificateException.class, MultipleEntriesException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<Void> euDgcIsEmpty(EmptyCertificateException e) {
-        logger.error("HCert was decoded but didn't contain any entries!");
+    public ResponseEntity<Void> euDgcInvalidType(CertificateFormatException e) {
+        if (e instanceof EmptyCertificateException) {
+            logger.error("HCert was decoded but didn't contain any entries!");
+        } else {
+            logger.error("HCert was decoded but contained multiple entries!");
+        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 

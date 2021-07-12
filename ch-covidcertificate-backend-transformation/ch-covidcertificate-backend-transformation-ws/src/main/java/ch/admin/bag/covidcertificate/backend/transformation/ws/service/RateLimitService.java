@@ -1,9 +1,7 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.service;
 
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.RateLimitExceededException;
-import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -18,19 +16,16 @@ public class RateLimitService {
         this.rateLimit = rateLimit;
     }
 
-    public void checkRateLimit(DccCert euCert)
-            throws EmptyCertificateException, NoSuchAlgorithmException, RateLimitExceededException {
-        final String uvci;
-        if (euCert.getVaccinations() != null && !euCert.getVaccinations().isEmpty()) {
-            uvci = euCert.getVaccinations().get(0).getCertificateIdentifier();
-        } else if (euCert.getTests() != null && !euCert.getTests().isEmpty()) {
-            uvci = euCert.getTests().get(0).getCertificateIdentifier();
-        } else if (euCert.getPastInfections() != null && !euCert.getPastInfections().isEmpty()) {
-            uvci = euCert.getPastInfections().get(0).getCertificateIdentifier();
-        } else {
-            throw new EmptyCertificateException();
-        }
-
+    /**
+     * Checks that the rate limit hasn't been exceeded within a rolling time window (default: 24
+     * hours) and increases it if it hasn't.
+     *
+     * @param uvci identifier to check current rate for
+     * @throws NoSuchAlgorithmException If hashing algorithm isn't supported
+     * @throws RateLimitExceededException If rate limit is exceeded for the given identifier
+     */
+    public void checkRateLimit(String uvci)
+            throws NoSuchAlgorithmException, RateLimitExceededException {
         final var digest = MessageDigest.getInstance("SHA-256");
         final var uvciHash = Base64.getEncoder().encodeToString(digest.digest(uvci.getBytes()));
 
