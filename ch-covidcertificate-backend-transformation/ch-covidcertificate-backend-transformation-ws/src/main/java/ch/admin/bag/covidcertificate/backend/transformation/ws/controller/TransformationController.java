@@ -15,10 +15,10 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.RateLimitExceededException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.ubique.openapi.docannotations.Documentation;
@@ -83,9 +83,8 @@ public class TransformationController {
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
-            throws IOException, InterruptedException, ValidationException, ResponseParseError,
-                    NoSuchAlgorithmException, RateLimitExceededException,
-                    EmptyCertificateException {
+            throws IOException, ValidationException, ResponseParseError, NoSuchAlgorithmException,
+                    RateLimitExceededException, EmptyCertificateException {
 
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validate(hCertPayload);
@@ -115,7 +114,7 @@ public class TransformationController {
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/pdf")
     public @ResponseBody ResponseEntity<PdfPayload> getPdf(
-            @Valid @RequestBody HCertPayload hCertPayload) throws IOException {
+            @Valid @RequestBody HCertPayload hCertPayload) {
         return ResponseEntity.notFound().build();
     }
 
