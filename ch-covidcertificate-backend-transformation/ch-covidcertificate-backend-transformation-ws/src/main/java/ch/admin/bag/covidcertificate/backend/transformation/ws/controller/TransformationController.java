@@ -104,6 +104,7 @@ public class TransformationController {
 
         final var validityRange = validationResponse.getSuccessState().getValidityRange();
         CertLightPayload certLight = certLightClient.getCertLight(euCert, validityRange);
+        rateLimitService.updateCount(uvci);
 
         return ResponseEntity.ok(certLight);
     }

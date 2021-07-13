@@ -26,14 +26,18 @@ public class RateLimitService {
      */
     public void checkRateLimit(String uvci)
             throws NoSuchAlgorithmException, RateLimitExceededException {
-        final var digest = MessageDigest.getInstance("SHA-256");
-        final var uvciHash = Base64.getEncoder().encodeToString(digest.digest(uvci.getBytes()));
-
-        final int count = rateLimitDataService.getCurrentRate(uvciHash);
-        if (count < rateLimit) {
-            rateLimitDataService.increaseRate(uvciHash);
-        } else {
+        final String uvciHash = getSha256Hash(uvci);
+        if (rateLimitDataService.getCurrentRate(uvciHash) >= rateLimit) {
             throw new RateLimitExceededException(uvciHash);
         }
+    }
+
+    public void updateCount(String uvci) throws NoSuchAlgorithmException {
+        rateLimitDataService.increaseRate(getSha256Hash(uvci));
+    }
+
+    private String getSha256Hash(String toHash) throws NoSuchAlgorithmException {
+        final var digest = MessageDigest.getInstance("SHA-256");
+        return Base64.getEncoder().encodeToString(digest.digest(toHash.getBytes()));
     }
 }
