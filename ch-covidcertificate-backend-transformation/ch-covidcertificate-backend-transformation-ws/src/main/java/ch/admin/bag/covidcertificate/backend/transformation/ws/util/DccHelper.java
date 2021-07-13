@@ -12,6 +12,10 @@ import java.util.stream.Collectors;
 
 public class DccHelper {
 
+    private DccHelper() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * Fetches the UVCI of the given certificate, asserting the certificate only contains a single
      * entry

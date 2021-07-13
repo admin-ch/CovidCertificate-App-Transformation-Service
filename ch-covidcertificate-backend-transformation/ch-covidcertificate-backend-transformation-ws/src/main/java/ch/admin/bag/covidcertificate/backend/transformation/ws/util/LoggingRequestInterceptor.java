@@ -68,7 +68,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor {
                     "==========================response begin=============================================");
             LOGGER.debug("Status:  {}", responseWrapper.getStatusCode());
             LOGGER.debug("Headers: {}", responseWrapper.getHeaders());
-            LOGGER.debug("Body:    {}", inputStringBuilder.toString());
+            LOGGER.debug("Body:    {}", inputStringBuilder);
             LOGGER.debug(
                     "==========================response end===============================================");
             return responseWrapper;
