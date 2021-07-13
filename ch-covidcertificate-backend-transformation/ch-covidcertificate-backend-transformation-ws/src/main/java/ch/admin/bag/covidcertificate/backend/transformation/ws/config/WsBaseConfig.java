@@ -118,7 +118,7 @@ public abstract class WsBaseConfig {
     }
 
     @Bean
-    public OauthWebClient tokenReceiver(ClientRegistrationRepository clientRegistration) {
+    public OauthWebClient oauthWebClient(ClientRegistrationRepository clientRegistration) {
         return new OauthWebClient(clientId, clientRegistration);
     }
 

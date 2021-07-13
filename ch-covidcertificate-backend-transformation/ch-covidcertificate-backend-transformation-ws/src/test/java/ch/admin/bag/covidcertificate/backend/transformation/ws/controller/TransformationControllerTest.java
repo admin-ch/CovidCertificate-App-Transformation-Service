@@ -107,7 +107,7 @@ class TransformationControllerTest extends BaseControllerTest {
 
         var hCertPayload = new HCertPayload();
         hCertPayload.setHcert("HC1:example");
-        final String hcertPayload = objectMapper.writeValueAsString(hCertPayload);
+        final String payloadString = objectMapper.writeValueAsString(hCertPayload);
 
         final var verificationResponse = new VerificationResponse();
         verificationResponse.setInvalidState(
@@ -124,7 +124,7 @@ class TransformationControllerTest extends BaseControllerTest {
                         ExpectedCount.once(),
                         requestTo(new URI(verificationCheckBaseUrl + verificationCheckEndpoint)))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(content().string(hcertPayload))
+                .andExpect(content().string(payloadString))
                 .andRespond(
                         withStatus(HttpStatus.OK)
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -132,7 +132,7 @@ class TransformationControllerTest extends BaseControllerTest {
 
         mockMvc.perform(
                         post(BASE_URL + CERTLIGHT_ENDPOINT)
-                                .content(objectMapper.writeValueAsString(hCertPayload))
+                                .content(payloadString)
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())

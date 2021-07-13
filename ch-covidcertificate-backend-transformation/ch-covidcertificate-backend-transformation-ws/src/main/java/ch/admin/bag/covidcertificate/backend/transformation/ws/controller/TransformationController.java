@@ -161,7 +161,7 @@ public class TransformationController {
     @ExceptionHandler(RateLimitExceededException.class)
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
     public ResponseEntity<Void> rateLimitExceeded(RateLimitExceededException e) {
-        logger.error("Rate limit exceeded for uvci-hash: {}", e.getUvciHash());
+        logger.info("Rate limit exceeded for uvci-hash: {}", e.getUvciHash());
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
 }

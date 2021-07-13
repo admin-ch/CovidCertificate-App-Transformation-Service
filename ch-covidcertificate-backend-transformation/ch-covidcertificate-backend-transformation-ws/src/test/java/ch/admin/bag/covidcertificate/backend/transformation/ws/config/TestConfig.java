@@ -43,7 +43,7 @@ public class TestConfig extends WsBaseConfig {
     }
 
     @Bean
-    public OauthWebClient tokenReceiver() {
+    public OauthWebClient oauthWebClient() {
         return null;
     }
 }

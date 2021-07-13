@@ -20,10 +20,10 @@ public interface RateLimitDataService {
     public void increaseRate(String uvciHash);
 
     /**
-     * Removes all entries in the current database older than the given retentionperiod
+     * Removes all entries in the current database older than the given retentionPeriod
      *
-     * @param retentionperiod Duration indicating the amount of time an entry should be kept
+     * @param retentionPeriod Duration indicating the amount of time an entry should be kept
      * @return number of removed entries
      */
-    public int cleanDb(Duration retentionperiod);
+    public int cleanDb(Duration retentionPeriod);
 }

@@ -29,8 +29,8 @@ public class SchedulingConfig {
 
     // Run cleanjob once per hour at minute 0
     @Scheduled(cron = "${ws.rate-limit.clean-cron:0 0 * ? * *}")
-    @SchedulerLock(name = "cleanDB", lockAtLeastFor = "PT15S")
-    public void cleanDB() {
+    @SchedulerLock(name = "cleanDb", lockAtLeastFor = "PT15S")
+    public void cleanDb() {
         logger.info("Cleaning rate-limit database entries");
         rateLimitDataService.cleanDb(retentionPeriod);
     }

@@ -17,9 +17,9 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -73,27 +73,19 @@ public class VerificationCheckClient {
     }
 
     private VerificationResponse verify(HCertPayload hCertPayload) throws ResponseParseError {
-        final String hCert;
         try {
-            hCert = objectMapper.writeValueAsString(hCertPayload);
-
             final var uri =
                     UriComponentsBuilder.fromHttpUrl(baseurl + verifyEndpoint).build().toUri();
-            final var request = RequestEntity.post(uri).headers(createRequestHeaders()).body(hCert);
+            final var request =
+                    RequestEntity.post(uri).headers(createRequestHeaders()).body(hCertPayload);
             final var response = rt.exchange(request, String.class);
-
-            if (!response.getStatusCode().equals(HttpStatus.OK)) {
-                logger.info(
-                        "Certificate couldn't be decoded: HTTP {}",
-                        response.getStatusCode().value());
-                return null;
-            }
-
             return parseResponse(response);
         } catch (IOException e) {
             logger.error("Couldn't verify certificate", e);
-            return null;
+        } catch (HttpStatusCodeException e) {
+            logger.info("Certificate couldn't be verified", e);
         }
+        return null;
     }
 
     private HttpHeaders createRequestHeaders() {

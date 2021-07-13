@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,7 @@ class RateLimitDataServiceTest extends BaseDataServiceTest {
         rateLimitDataService.increaseRate("uvci_1");
         rateLimitDataService.increaseRate("");
         rateLimitDataService.increaseRate(null);
-        assertTrue(rateLimitDataService.getCurrentRate("uvci_1") > 0);
+        assertEquals(2, rateLimitDataService.getCurrentRate("uvci_1"));
     }
 
     @Test
@@ -35,12 +36,13 @@ class RateLimitDataServiceTest extends BaseDataServiceTest {
 
     @Test
     @Transactional
-    void cleanDBTest() {
+    void cleanDbTest() throws InterruptedException {
         rateLimitDataService.increaseRate("uvci_1");
         rateLimitDataService.increaseRate("uvci_2");
-        assertTrue(rateLimitDataService.getCurrentRate("uvci_1") > 0);
-        assertTrue(rateLimitDataService.getCurrentRate("uvci_2") > 0);
+        assertEquals(1, rateLimitDataService.getCurrentRate("uvci_1"));
+        assertEquals(1, rateLimitDataService.getCurrentRate("uvci_2"));
         assertEquals(0, rateLimitDataService.getCurrentRate("uvci_3"));
+        TimeUnit.SECONDS.sleep(1);
         rateLimitDataService.cleanDb(Duration.ZERO);
         assertEquals(0, rateLimitDataService.getCurrentRate("uvci_1"));
         assertEquals(0, rateLimitDataService.getCurrentRate("uvci_2"));

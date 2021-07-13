@@ -1,11 +1,9 @@
 package ch.admin.bag.covidcertificate.backend.transformation.data.impl;
 
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.util.Date;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +34,7 @@ public class JdbcRateLimitDataServiceImpl implements RateLimitDataService {
         logger.debug("Fetching current count for uvci hash {}", uvciHash);
         final var getCountSql = "select count(1) from t_rate_limit where uvci_hash = :uvci_hash";
         final var params = new MapSqlParameterSource("uvci_hash", uvciHash);
-        final Integer count = jt.queryForObject(getCountSql, params, Integer.class);
-        return count != null ? count : 0;
+        return jt.queryForObject(getCountSql, params, Integer.class);
     }
 
     @Override
@@ -53,11 +50,9 @@ public class JdbcRateLimitDataServiceImpl implements RateLimitDataService {
     @Override
     @Transactional(readOnly = false)
     public int cleanDb(Duration retentionPeriod) {
-        var retentionTime = Instant.now().minus(retentionPeriod);
-        logger.debug(
-                "Removing entries older than {}",
-                LocalDateTime.ofInstant(retentionTime, ZoneId.systemDefault()));
-        var params = new MapSqlParameterSource("retention_time", Timestamp.from(retentionTime));
+        var retentionTime = Date.from(Instant.now().minus(retentionPeriod));
+        logger.debug("Removing entries before {}", retentionTime);
+        var params = new MapSqlParameterSource("retention_time", retentionTime);
         var cleanupSql = "delete from t_rate_limit where created_at < :retention_time";
         return jt.update(cleanupSql, params);
     }
