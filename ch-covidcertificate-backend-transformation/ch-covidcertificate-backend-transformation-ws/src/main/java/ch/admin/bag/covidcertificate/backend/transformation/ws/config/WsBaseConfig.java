@@ -10,11 +10,20 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
+import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
+import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLimitDataServiceImpl;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.util.RestTemplateHelper;
 import java.time.ZoneId;
 import java.util.List;
+import javax.sql.DataSource;
+import net.javacrumbs.shedlock.core.LockProvider;
+import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
+import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +31,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.web.client.RestTemplate;
 
 @Configuration
 public abstract class WsBaseConfig {
@@ -49,18 +60,52 @@ public abstract class WsBaseConfig {
     @Value("${verification.zone-id:default}")
     private String namedZoneId;
 
+    @Value("${ws.rate-limit:10}")
+    private int rateLimit;
+
+    public abstract DataSource dataSource();
+
+    public abstract Flyway flyway();
+
     @Bean
     public TransformationController transformationController(
             VerificationCheckClient verificationCheckClient,
-            OauthWebClient tokenReceiver,
-            ZoneId verificationZoneId,
+            CertLightClient certLightClient,
+            RateLimitService rateLimitService,
             boolean debug) {
         return new TransformationController(
-                lightCertificateEnpoint,
-                verificationCheckClient,
-                tokenReceiver,
-                verificationZoneId,
-                debug);
+                verificationCheckClient, certLightClient, rateLimitService, debug);
+    }
+
+    @Bean
+    public VerificationCheckClient verificationCheckClient(RestTemplate rt) {
+        return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint, rt);
+    }
+
+    @Bean
+    public CertLightClient certLightClient(
+            OauthWebClient oauthWebClient, ZoneId verificationZoneId) {
+        return new CertLightClient(lightCertificateEnpoint, oauthWebClient, verificationZoneId);
+    }
+
+    @Bean
+    public RateLimitDataService rateLimitDataService(DataSource dataSource) {
+        return new JdbcRateLimitDataServiceImpl(dataSource);
+    }
+
+    @Bean
+    public RateLimitService rateLimitService(RateLimitDataService rateLimitDataService) {
+        return new RateLimitService(rateLimitDataService, rateLimit);
+    }
+
+    @Bean
+    public LockProvider lockProvider(DataSource dataSource) {
+        return new JdbcTemplateLockProvider(
+                JdbcTemplateLockProvider.Configuration.builder()
+                        .withTableName("t_shedlock")
+                        .withJdbcTemplate(new JdbcTemplate(dataSource))
+                        .usingDbTime()
+                        .build());
     }
 
     @Bean
@@ -73,7 +118,7 @@ public abstract class WsBaseConfig {
     }
 
     @Bean
-    public OauthWebClient tokenReceiver(ClientRegistrationRepository clientRegistration) {
+    public OauthWebClient oauthWebClient(ClientRegistrationRepository clientRegistration) {
         return new OauthWebClient(clientId, clientRegistration);
     }
 
@@ -87,7 +132,7 @@ public abstract class WsBaseConfig {
     }
 
     @Bean
-    public VerificationCheckClient verificationCheckClient() {
-        return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint);
+    public RestTemplate restTemplate() {
+        return RestTemplateHelper.getRestTemplate();
     }
 }

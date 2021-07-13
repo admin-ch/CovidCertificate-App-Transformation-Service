@@ -13,24 +13,24 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
-import ch.admin.bag.covidcertificate.backend.transformation.model.Person;
-import ch.admin.bag.covidcertificate.backend.transformation.model.TransformPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.CertificateFormatException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.MultipleEntriesException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.RateLimitExceededException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.util.DccHelper;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.ubique.openapi.docannotations.Documentation;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.security.NoSuchAlgorithmException;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.stereotype.Controller;
@@ -49,24 +49,19 @@ public class TransformationController {
 
     private static final Logger logger = LoggerFactory.getLogger(TransformationController.class);
 
-    private final String lightCertificateEnpoint;
     private final VerificationCheckClient verificationCheckClient;
-    private final OauthWebClient oauthWebClient;
-    private final ObjectMapper objectMapper;
-    private final ZoneId verificationZoneId;
+    private final CertLightClient certLightClient;
+    private final RateLimitService rateLimitService;
     private final boolean debug;
 
     public TransformationController(
-            String lightCertificateEndpoint,
             VerificationCheckClient verificationCheckClient,
-            OauthWebClient tokenReceiver,
-            ZoneId verificationZoneId,
+            CertLightClient certLightClient,
+            RateLimitService rateLimitService,
             boolean debug) {
-        this.lightCertificateEnpoint = lightCertificateEndpoint;
         this.verificationCheckClient = verificationCheckClient;
-        this.oauthWebClient = tokenReceiver;
-        this.verificationZoneId = verificationZoneId;
-        this.objectMapper = new ObjectMapper();
+        this.certLightClient = certLightClient;
+        this.rateLimitService = rateLimitService;
         this.debug = debug;
     }
 
@@ -81,7 +76,7 @@ public class TransformationController {
 
     @Documentation(
             description =
-                    "Validates the covid certificate transforms it into a lightcert, and returns it and its qr-code version",
+                    "Validates the covid certificate, transforms it into a light certificate, and returns it and its qr-code version",
             responses = {
                 "200 => Certificate could be validated and transformed",
                 "400 => Certificate can't be decoded or is invalid",
@@ -91,7 +86,10 @@ public class TransformationController {
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
-            throws IOException, InterruptedException, ValidationException, ResponseParseError {
+            throws IOException, ValidationException, ResponseParseError, NoSuchAlgorithmException,
+                    RateLimitExceededException, EmptyCertificateException,
+                    MultipleEntriesException {
+
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validate(hCertPayload);
         final var certificateHolder = validationResponse.getHcertDecoded();
@@ -99,43 +97,15 @@ public class TransformationController {
             return ResponseEntity.badRequest().build();
         }
 
-        // Create payload for qr light endpoint
         var euCert = (DccCert) certificateHolder.getCertificate();
-        var name = euCert.getPerson();
 
-        var person = new Person();
-        person.setFn(name.getFamilyName());
-        person.setGn(name.getGivenName());
-        person.setFnt(name.getStandardizedFamilyName());
-        person.setGnt(name.getStandardizedGivenName());
+        final String uvci = DccHelper.getUvci(euCert);
+        rateLimitService.checkRateLimit(uvci);
 
-        var transformPayload = new TransformPayload();
-        transformPayload.setNam(person);
-        transformPayload.setDob(euCert.getDateOfBirth());
+        final var validityRange = validationResponse.getSuccessState().getValidityRange();
+        CertLightPayload certLight = certLightClient.getCertLight(euCert, validityRange);
+        rateLimitService.updateCount(uvci);
 
-        var exp =
-                validationResponse
-                        .getSuccessState()
-                        .getValidityRange()
-                        .getValidUntil()
-                        .atZone(verificationZoneId)
-                        .toInstant()
-                        .toEpochMilli();
-        var nowPlus48 = Instant.now().plus(Duration.ofHours(48)).toEpochMilli();
-        transformPayload.setExp((exp < nowPlus48) ? exp : nowPlus48);
-
-        // Get and forward light certificate
-        var transformResponse =
-                oauthWebClient
-                        .getWebClient()
-                        .post()
-                        .uri(lightCertificateEnpoint)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(transformPayload)
-                        .retrieve()
-                        .bodyToMono(String.class)
-                        .block();
-        var certLight = objectMapper.readValue(transformResponse, CertLightPayload.class);
         return ResponseEntity.ok(certLight);
     }
 
@@ -150,7 +120,7 @@ public class TransformationController {
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/pdf")
     public @ResponseBody ResponseEntity<PdfPayload> getPdf(
-            @Valid @RequestBody HCertPayload hCertPayload) throws IOException {
+            @Valid @RequestBody HCertPayload hCertPayload) {
         return ResponseEntity.notFound().build();
     }
 
@@ -176,5 +146,23 @@ public class TransformationController {
         } else {
             return responseBuilder.build();
         }
+    }
+
+    @ExceptionHandler({EmptyCertificateException.class, MultipleEntriesException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Void> euDgcInvalidType(CertificateFormatException e) {
+        if (e instanceof EmptyCertificateException) {
+            logger.error("HCert was decoded but didn't contain any entries!");
+        } else {
+            logger.error("HCert was decoded but contained multiple entries!");
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ResponseEntity<Void> rateLimitExceeded(RateLimitExceededException e) {
+        logger.info("Rate limit exceeded for uvci-hash: {}", e.getUvciHash());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
     }
 }
