@@ -39,6 +39,7 @@ public class ActuatorSecurity extends WebSecurityConfigurerAdapter {
 
     private static final String PROMETHEUS_ROLE = "PROMETHEUS";
     @Autowired Environment environment;
+
     @Value("${ws.monitor.prometheus.user}")
     private String user;
 

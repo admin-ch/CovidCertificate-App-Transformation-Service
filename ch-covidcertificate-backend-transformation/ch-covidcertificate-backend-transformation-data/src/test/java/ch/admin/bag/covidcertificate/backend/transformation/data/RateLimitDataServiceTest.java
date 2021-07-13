@@ -1,7 +1,6 @@
 package ch.admin.bag.covidcertificate.backend.transformation.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;

@@ -19,7 +19,10 @@ public class OauthWebClient {
     private final WebClient client;
 
     public OauthWebClient(String clientId, ClientRegistrationRepository clientRegistrations) {
-        var clientRepository = new AuthorizedClientServiceOAuth2AuthorizedClientManager(clientRegistrations, new InMemoryOAuth2AuthorizedClientService(clientRegistrations));
+        var clientRepository =
+                new AuthorizedClientServiceOAuth2AuthorizedClientManager(
+                        clientRegistrations,
+                        new InMemoryOAuth2AuthorizedClientService(clientRegistrations));
         var oauth = new ServletOAuth2AuthorizedClientExchangeFilterFunction(clientRepository);
         oauth.setDefaultClientRegistrationId(clientId);
         client = WebClient.builder().filter(oauth).build();
@@ -28,5 +31,4 @@ public class OauthWebClient {
     public WebClient getWebClient() {
         return client;
     }
-
 }

@@ -15,7 +15,6 @@ public class Person {
     private String fnt;
     private String gnt;
 
-
     public String getFn() {
         return this.fn;
     }
@@ -47,5 +46,4 @@ public class Person {
     public void setGnt(String gnt) {
         this.gnt = gnt;
     }
-
 }

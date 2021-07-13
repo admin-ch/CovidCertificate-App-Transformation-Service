@@ -1,9 +1,8 @@
 package ch.admin.bag.covidcertificate.backend.transformation.model;
 
 import ch.ubique.openapi.docannotations.Documentation;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonAlias;
+import javax.validation.constraints.NotNull;
 
 public class CertLightPayload {
 
