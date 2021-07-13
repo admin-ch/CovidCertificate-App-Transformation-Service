@@ -148,14 +148,14 @@ public class TransformationController {
     }
 
     @ExceptionHandler({EmptyCertificateException.class, MultipleEntriesException.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Void> euDgcInvalidType(CertificateFormatException e) {
         if (e instanceof EmptyCertificateException) {
             logger.error("HCert was decoded but didn't contain any entries!");
         } else {
             logger.error("HCert was decoded but contained multiple entries!");
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
     @ExceptionHandler(RateLimitExceededException.class)
