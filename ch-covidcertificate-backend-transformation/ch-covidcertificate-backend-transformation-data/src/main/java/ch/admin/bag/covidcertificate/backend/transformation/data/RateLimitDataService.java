@@ -25,5 +25,5 @@ public interface RateLimitDataService {
      * @param retentionperiod Duration indicating the amount of time an entry should be kept
      * @return number of removed entries
      */
-    public int cleanDB(Duration retentionperiod);
+    public int cleanDb(Duration retentionperiod);
 }

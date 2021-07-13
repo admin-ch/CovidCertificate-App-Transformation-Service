@@ -41,7 +41,7 @@ class RateLimitDataServiceTest extends BaseDataServiceTest {
         assertTrue(rateLimitDataService.getCurrentRate("uvci_1") > 0);
         assertTrue(rateLimitDataService.getCurrentRate("uvci_2") > 0);
         assertEquals(0, rateLimitDataService.getCurrentRate("uvci_3"));
-        rateLimitDataService.cleanDB(Duration.ZERO);
+        rateLimitDataService.cleanDb(Duration.ZERO);
         assertEquals(0, rateLimitDataService.getCurrentRate("uvci_1"));
         assertEquals(0, rateLimitDataService.getCurrentRate("uvci_2"));
         assertEquals(0, rateLimitDataService.getCurrentRate("uvci_3"));

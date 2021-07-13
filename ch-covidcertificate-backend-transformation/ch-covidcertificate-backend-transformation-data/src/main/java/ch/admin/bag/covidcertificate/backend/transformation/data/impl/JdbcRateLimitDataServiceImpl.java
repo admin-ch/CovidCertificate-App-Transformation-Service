@@ -52,8 +52,8 @@ public class JdbcRateLimitDataServiceImpl implements RateLimitDataService {
 
     @Override
     @Transactional(readOnly = false)
-    public int cleanDB(Duration retentionperiod) {
-        var retentionTime = Instant.now().minus(retentionperiod);
+    public int cleanDb(Duration retentionPeriod) {
+        var retentionTime = Instant.now().minus(retentionPeriod);
         logger.debug(
                 "Removing entries older than {}",
                 LocalDateTime.ofInstant(retentionTime, ZoneId.systemDefault()));
