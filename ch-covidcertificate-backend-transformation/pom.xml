@@ -31,7 +31,7 @@
         <sonar.organization>admin-ch</sonar.organization>
         <sonar.login>${env.SONAR_TOKEN}</sonar.login>
         <sonar.coverage.jacoco.xmlReportPaths>
-            ${project.basedir}/../ch-covidcertificate-backend-exchange-report/target/site/jacoco-aggregate/jacoco.xml
+            ${project.basedir}/../ch-covidcertificate-backend-transformation-report/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 

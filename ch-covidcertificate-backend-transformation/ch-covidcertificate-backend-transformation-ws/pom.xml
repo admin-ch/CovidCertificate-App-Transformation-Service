@@ -229,22 +229,22 @@
                 <groupId>ch.ubique.openapi</groupId>
                 <artifactId>springboot-swagger-3</artifactId>
                 <configuration>
-                    <apiVersion>1.1.0</apiVersion>
+                    <apiVersion>2.2.0</apiVersion>
                     <basePackages>
-                        ch.admin.bag.covidcertificate.backend.exchange
+                        ch.admin.bag.covidcertificate.backend.transformation
                     </basePackages>
                     <controllers>
                         <controller>
                             ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController
                         </controller>
                     </controllers>
-                    <description>CH Covidcertificate Exchange API</description>
+                    <description>CH Covidcertificate Transformation API</description>
                     <apiUrls>
                         <apiUrl>https://covidcertificate-app-d.bit.admin.ch</apiUrl>
                         <apiUrl>https://covidcertificate-app-a.bit.admin.ch</apiUrl>
                         <apiUrl>https://covidcertificate-app.bit.admin.ch</apiUrl>
                     </apiUrls>
-                    <title>CH Covidcertificate Exchange API</title>
+                    <title>CH Covidcertificate Transformation API</title>
                 </configuration>
             </plugin>
             <plugin>
