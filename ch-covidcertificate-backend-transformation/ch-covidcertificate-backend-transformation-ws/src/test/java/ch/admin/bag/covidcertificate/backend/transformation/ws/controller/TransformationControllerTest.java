@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
-import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckNationalRulesState;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckRevocationState;
@@ -61,7 +61,7 @@ class TransformationControllerTest extends BaseControllerTest {
     private static final String PDF_ENDPOINT = "/pdf";
     private static final String LIGHT_CERT_MOCK = "src/main/resources/light-cert-mock.json";
     private static CertLightPayload certLightMock;
-    private static PdfPayload mockPdfPayload;
+    private static PdfResponse mockPdfResponse;
 
     static {
         try {
@@ -73,8 +73,8 @@ class TransformationControllerTest extends BaseControllerTest {
                             .encodeToString(
                                     Files.readAllBytes(
                                             Paths.get("src/main/resources/cert-pdf-mock.pdf")));
-            mockPdfPayload = new PdfPayload();
-            mockPdfPayload.setPdf(pdfString);
+            mockPdfResponse = new PdfResponse();
+            mockPdfResponse.setPdf(pdfString);
         } catch (IOException e) {
             logger.error("Couldn't parse light cert mock file");
         }
@@ -173,7 +173,7 @@ class TransformationControllerTest extends BaseControllerTest {
                         .andReturn()
                         .getResponse();
         final var responsePayload =
-                objectMapper.readValue(response.getContentAsString(), PdfPayload.class);
-        assertEquals(mockPdfPayload.getPdf(), responsePayload.getPdf());
+                objectMapper.readValue(response.getContentAsString(), PdfResponse.class);
+        assertEquals(mockPdfResponse.getPdf(), responsePayload.getPdf());
     }
 }
