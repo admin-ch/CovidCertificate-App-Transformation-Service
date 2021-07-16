@@ -11,6 +11,12 @@ public class PdfResponse {
     @NotNull
     private String pdf;
 
+    public PdfResponse() {}
+
+    public PdfResponse(String pdf) {
+        this.pdf = pdf;
+    }
+
     public String getPdf() {
         return pdf;
     }

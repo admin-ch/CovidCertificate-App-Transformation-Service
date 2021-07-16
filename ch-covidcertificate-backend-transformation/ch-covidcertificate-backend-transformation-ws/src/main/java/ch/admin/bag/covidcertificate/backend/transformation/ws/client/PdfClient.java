@@ -7,20 +7,15 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedTCe
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedVCert;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.config.model.PdfConfig;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.MediaType;
 
 public class PdfClient {
     private final PdfConfig pdfConfig;
-    private final OauthWebClient oauthWebClient;
-    private final ObjectMapper objectMapper;
+    private final BitClient bitClient;
 
-    public PdfClient(PdfConfig pdfConfig, OauthWebClient oauthWebClient) {
+    public PdfClient(PdfConfig pdfConfig, BitClient bitClient) {
         this.pdfConfig = pdfConfig;
-        this.oauthWebClient = oauthWebClient;
-        this.objectMapper = new ObjectMapper();
+        this.bitClient = bitClient;
     }
 
     public PdfResponse getPdf(BitPdfPayload payload) throws JsonProcessingException {
@@ -36,17 +31,6 @@ public class PdfClient {
             throw new RuntimeException(
                     "unexpected class received: " + decodedCert.getClass().getName());
         }
-        var response =
-                oauthWebClient
-                        .getWebClient()
-                        .post()
-                        .uri(endpoint)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .bodyValue(payload)
-                        .retrieve()
-                        .bodyToMono(String.class)
-                        .block();
-        return objectMapper.readValue(response, PdfResponse.class);
+        return bitClient.getPdf(payload, endpoint);
     }
 }

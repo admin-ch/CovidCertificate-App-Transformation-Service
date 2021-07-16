@@ -10,7 +10,7 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
-import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.BitPdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.Language;
@@ -98,7 +98,7 @@ public class TransformationController {
             })
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/certificateLight")
-    public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
+    public @ResponseBody ResponseEntity<CertLightResponse> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
             throws JsonProcessingException, ValidationException, ResponseParseError,
                     NoSuchAlgorithmException, RateLimitExceededException, EmptyCertificateException,
@@ -117,7 +117,7 @@ public class TransformationController {
         rateLimitService.checkRateLimit(uvci);
 
         final var validityRange = validationResponse.getSuccessState().getValidityRange();
-        CertLightPayload certLight = certLightClient.getCertLight(euCert, validityRange);
+        CertLightResponse certLight = certLightClient.getCertLight(euCert, validityRange);
         rateLimitService.updateCount(uvci);
 
         return ResponseEntity.ok(certLight);

@@ -20,25 +20,28 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
-import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckNationalRulesState;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckRevocationState;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckSignatureState;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.VerificationState.INVALID;
 import ch.admin.bag.covidcertificate.sdk.core.verifier.nationalrules.NationalRulesError;
 import ch.admin.bag.covidcertificate.sdk.core.verifier.nationalrules.ValidityRange;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Base64;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +54,7 @@ import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
+@TestInstance(Lifecycle.PER_CLASS)
 class TransformationControllerTest extends BaseControllerTest {
 
     private static final Logger logger =
@@ -59,22 +63,31 @@ class TransformationControllerTest extends BaseControllerTest {
     private static final String BASE_URL = "/app/transform/v1";
     private static final String CERTLIGHT_ENDPOINT = "/certificateLight";
     private static final String PDF_ENDPOINT = "/pdf";
-    private static final String LIGHT_CERT_MOCK = "src/main/resources/light-cert-mock.json";
-    private static CertLightPayload certLightMock;
-    private static PdfResponse mockPdfResponse;
 
-    static {
+    private static final String LIGHT_CERT_MOCK = "src/main/resources/dev/light-cert-mock.json";
+    private CertLightResponse certLightMock;
+
+    private static final String PDF_MOCK = "src/main/resources/dev/cert-pdf-mock.pdf";
+    private PdfResponse mockPdfResponse;
+
+    private static final String VERIFICATION_CHECK_SUCCESS_RESPONSE_MOCK =
+            "src/main/resources/dev/verification-check-success-response-mock.json";
+    private String verificationCheckSuccessResponse;
+
+    @BeforeAll
+    public void setup() {
         try {
             certLightMock =
-                    new ObjectMapper()
-                            .readValue(Paths.get(LIGHT_CERT_MOCK).toFile(), CertLightPayload.class);
+                    objectMapper.readValue(
+                            Paths.get(LIGHT_CERT_MOCK).toFile(), CertLightResponse.class);
+
             var pdfString =
-                    Base64.getEncoder()
-                            .encodeToString(
-                                    Files.readAllBytes(
-                                            Paths.get("src/main/resources/cert-pdf-mock.pdf")));
+                    Base64.getEncoder().encodeToString(Files.readAllBytes(Paths.get(PDF_MOCK)));
             mockPdfResponse = new PdfResponse();
             mockPdfResponse.setPdf(pdfString);
+
+            verificationCheckSuccessResponse =
+                    Files.readString(Paths.get(VERIFICATION_CHECK_SUCCESS_RESPONSE_MOCK));
         } catch (IOException e) {
             logger.error("Couldn't parse light cert mock file");
         }
@@ -105,9 +118,7 @@ class TransformationControllerTest extends BaseControllerTest {
     void invalidHcertTest() throws Exception {
         final LocalDateTime now = LocalDateTime.now();
 
-        var hCertPayload = new HCertPayload();
-        hCertPayload.setHcert("HC1:example");
-        final String payloadString = objectMapper.writeValueAsString(hCertPayload);
+        final String payloadString = getHcertPayloadString();
 
         final var verificationResponse = new VerificationResponse();
         verificationResponse.setInvalidState(
@@ -118,17 +129,8 @@ class TransformationControllerTest extends BaseControllerTest {
                                 NationalRulesError.NO_VALID_PRODUCT, "id_0"),
                         new ValidityRange(now.minusDays(2), now.plusDays(2))));
 
-        final var mockServer = MockRestServiceServer.createServer(rt);
-        mockServer
-                .expect(
-                        ExpectedCount.once(),
-                        requestTo(new URI(verificationCheckBaseUrl + verificationCheckEndpoint)))
-                .andExpect(method(HttpMethod.POST))
-                .andExpect(content().string(payloadString))
-                .andRespond(
-                        withStatus(HttpStatus.OK)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .body(objectMapper.writeValueAsString(verificationResponse)));
+        setupVerificationCheckMockServer(
+                payloadString, objectMapper.writeValueAsString(verificationResponse));
 
         mockMvc.perform(
                         post(BASE_URL + CERTLIGHT_ENDPOINT)
@@ -139,34 +141,54 @@ class TransformationControllerTest extends BaseControllerTest {
                 .andReturn();
     }
 
-    @Test
-    @Disabled("Need to mock QR-Light endpoint.")
-    void getCertLightTest() throws Exception {
+    private String getHcertPayloadString() throws JsonProcessingException {
         var hCertPayload = new HCertPayload();
         hCertPayload.setHcert("HC1:example");
+        final String payloadString = objectMapper.writeValueAsString(hCertPayload);
+        return payloadString;
+    }
+
+    private void setupVerificationCheckMockServer(String payload, String response)
+            throws URISyntaxException {
+        final var mockServer = MockRestServiceServer.createServer(rt);
+        mockServer
+                .expect(
+                        ExpectedCount.once(),
+                        requestTo(new URI(verificationCheckBaseUrl + verificationCheckEndpoint)))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().string(payload))
+                .andRespond(
+                        withStatus(HttpStatus.OK)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(response));
+    }
+
+    @Test
+    void getCertLightTest() throws Exception {
+        String hcertPayloadString = getHcertPayloadString();
+        setupVerificationCheckMockServer(hcertPayloadString, verificationCheckSuccessResponse);
         final MockHttpServletResponse response =
                 mockMvc.perform(
                                 post(BASE_URL + CERTLIGHT_ENDPOINT)
-                                        .content(objectMapper.writeValueAsString(hCertPayload))
+                                        .content(hcertPayloadString)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .accept(MediaType.APPLICATION_JSON))
                         .andExpect(status().is2xxSuccessful())
                         .andReturn()
                         .getResponse();
         final var responsePayload =
-                objectMapper.readValue(response.getContentAsString(), CertLightPayload.class);
+                objectMapper.readValue(response.getContentAsString(), CertLightResponse.class);
         assertEquals(certLightMock.getQrCode(), responsePayload.getQrCode());
     }
 
     @Test
-    @Disabled("PDF endpoint isn't implemented, yet.")
     void getPdfTest() throws Exception {
-        var hCertPayload = new HCertPayload();
-        hCertPayload.setHcert("HC1:example");
+        String hcertPayloadString = getHcertPayloadString();
+        setupVerificationCheckMockServer(hcertPayloadString, verificationCheckSuccessResponse);
         final MockHttpServletResponse response =
                 mockMvc.perform(
                                 post(BASE_URL + PDF_ENDPOINT)
-                                        .content(objectMapper.writeValueAsString(hCertPayload))
+                                        .content(hcertPayloadString)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .accept(MediaType.APPLICATION_JSON))
                         .andExpect(status().is2xxSuccessful())

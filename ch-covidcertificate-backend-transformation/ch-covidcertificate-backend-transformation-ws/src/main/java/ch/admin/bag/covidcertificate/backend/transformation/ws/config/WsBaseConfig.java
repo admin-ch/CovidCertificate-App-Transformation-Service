@@ -12,14 +12,22 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
 import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLimitDataServiceImpl;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.BitClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.PdfClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.deserializer.CustomCovidCertificateDeserializer;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.config.model.PdfConfig;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.RestTemplateHelper;
+import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.CovidCertificate;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import java.time.ZoneId;
 import java.util.List;
 import javax.sql.DataSource;
@@ -44,15 +52,6 @@ public abstract class WsBaseConfig {
 
     @Autowired private Environment env;
 
-    @Value("${mock.url:test}")
-    private String mockUrl;
-
-    @Value("${transform.light.endpoint}")
-    private String lightCertificateEndpoint;
-
-    @Value("${ws.jwt.client-id:default-client}")
-    private String clientId;
-
     @Value("${verification.check.baseurl}")
     private String verificationCheckBaseUrl;
 
@@ -68,6 +67,9 @@ public abstract class WsBaseConfig {
     public abstract DataSource dataSource();
 
     public abstract Flyway flyway();
+
+    public abstract BitClient bitClient(
+            ClientRegistrationRepository clientRegistration, ObjectMapper objectMapper);
 
     @Bean
     public TransformationController transformationController(
@@ -87,19 +89,35 @@ public abstract class WsBaseConfig {
     }
 
     @Bean
-    public PdfClient pdfClient(OauthWebClient oauthWebClient, PdfConfig pdfConfig) {
-        return new PdfClient(pdfConfig, oauthWebClient);
+    public PdfClient pdfClient(PdfConfig pdfConfig, BitClient bitClient) {
+        return new PdfClient(pdfConfig, bitClient);
     }
 
     @Bean
-    public VerificationCheckClient verificationCheckClient(RestTemplate rt) {
-        return new VerificationCheckClient(verificationCheckBaseUrl, verificationCheckEndpoint, rt);
+    public VerificationCheckClient verificationCheckClient(
+            RestTemplate rt, ObjectMapper objectMapper) {
+        return new VerificationCheckClient(
+                verificationCheckBaseUrl, verificationCheckEndpoint, rt, objectMapper);
     }
 
     @Bean
-    public CertLightClient certLightClient(
-            OauthWebClient oauthWebClient, ZoneId verificationZoneId) {
-        return new CertLightClient(lightCertificateEndpoint, oauthWebClient, verificationZoneId);
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper =
+                new ObjectMapper()
+                        .registerModule(new KotlinModule())
+                        .registerModule(new JavaTimeModule())
+                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                        .disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+        var deserialization = new SimpleModule();
+        deserialization.addDeserializer(
+                CovidCertificate.class, new CustomCovidCertificateDeserializer());
+        objectMapper.registerModule(deserialization);
+        return objectMapper;
+    }
+
+    @Bean
+    public CertLightClient certLightClient(ZoneId verificationZoneId, BitClient bitClient) {
+        return new CertLightClient(verificationZoneId, bitClient);
     }
 
     @Bean
@@ -129,11 +147,6 @@ public abstract class WsBaseConfig {
             logger.info("debug profile is active");
         }
         return debug;
-    }
-
-    @Bean
-    public OauthWebClient oauthWebClient(ClientRegistrationRepository clientRegistration) {
-        return new OauthWebClient(clientId, clientRegistration);
     }
 
     @Bean

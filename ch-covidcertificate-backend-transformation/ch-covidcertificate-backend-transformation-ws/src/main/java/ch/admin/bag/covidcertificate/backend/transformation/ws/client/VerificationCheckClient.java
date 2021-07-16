@@ -2,17 +2,11 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.client;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
-import ch.admin.bag.covidcertificate.backend.transformation.ws.client.deserializer.CustomCovidCertificateDeserializer;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
-import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.CovidCertificate;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,20 +26,12 @@ public class VerificationCheckClient {
     private final RestTemplate rt;
     private final ObjectMapper objectMapper;
 
-    public VerificationCheckClient(String baseurl, String verifyEndpoint, RestTemplate rt) {
+    public VerificationCheckClient(
+            String baseurl, String verifyEndpoint, RestTemplate rt, ObjectMapper objectMapper) {
         this.baseurl = baseurl;
         this.verifyEndpoint = verifyEndpoint;
         this.rt = rt;
-
-        objectMapper =
-                new ObjectMapper()
-                        .registerModule(new KotlinModule())
-                        .registerModule(new JavaTimeModule())
-                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        var deserialization = new SimpleModule();
-        deserialization.addDeserializer(
-                CovidCertificate.class, new CustomCovidCertificateDeserializer());
-        objectMapper.registerModule(deserialization);
+        this.objectMapper = objectMapper;
     }
 
     /**

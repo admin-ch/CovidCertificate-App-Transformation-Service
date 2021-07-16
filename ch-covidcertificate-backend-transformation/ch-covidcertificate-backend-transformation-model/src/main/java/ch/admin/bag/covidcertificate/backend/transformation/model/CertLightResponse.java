@@ -4,7 +4,7 @@ import ch.ubique.openapi.docannotations.Documentation;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import javax.validation.constraints.NotNull;
 
-public class CertLightPayload {
+public class CertLightResponse {
 
     @Documentation(
             description = "Base-45-encoded light certificate with prefix LT1:",
