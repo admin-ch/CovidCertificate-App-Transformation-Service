@@ -1,0 +1,20 @@
+### hello
+GET {{baseUrl}}/v1
+Accept: application/json
+
+### request certificate light
+POST {{baseUrl}}/v1/certificateLight
+Content-Type: application/json
+
+{
+  "hcert": "HC1:"
+}
+
+### request pdf
+POST {{baseUrl}}/v1/pdf
+Content-Type: application/json
+Accept-Language: it-ch
+
+{
+  "hcert": "HC1:"
+}
