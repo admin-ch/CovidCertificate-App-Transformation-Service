@@ -13,7 +13,9 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
 import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLimitDataServiceImpl;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.PdfClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.config.model.PdfConfig;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
@@ -46,7 +48,7 @@ public abstract class WsBaseConfig {
     private String mockUrl;
 
     @Value("${transform.light.endpoint}")
-    private String lightCertificateEnpoint;
+    private String lightCertificateEndpoint;
 
     @Value("${ws.jwt.client-id:default-client}")
     private String clientId;
@@ -72,9 +74,21 @@ public abstract class WsBaseConfig {
             VerificationCheckClient verificationCheckClient,
             CertLightClient certLightClient,
             RateLimitService rateLimitService,
+            PdfClient pdfClient,
+            PdfConfig pdfConfig,
             boolean debug) {
         return new TransformationController(
-                verificationCheckClient, certLightClient, rateLimitService, debug);
+                verificationCheckClient,
+                certLightClient,
+                rateLimitService,
+                pdfClient,
+                pdfConfig,
+                debug);
+    }
+
+    @Bean
+    public PdfClient pdfClient(OauthWebClient oauthWebClient, PdfConfig pdfConfig) {
+        return new PdfClient(pdfConfig, oauthWebClient);
     }
 
     @Bean
@@ -85,7 +99,7 @@ public abstract class WsBaseConfig {
     @Bean
     public CertLightClient certLightClient(
             OauthWebClient oauthWebClient, ZoneId verificationZoneId) {
-        return new CertLightClient(lightCertificateEnpoint, oauthWebClient, verificationZoneId);
+        return new CertLightClient(lightCertificateEndpoint, oauthWebClient, verificationZoneId);
     }
 
     @Bean

@@ -37,6 +37,11 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cloud-connectors</artifactId>
+            <version>${spring-cloud-connectors-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
@@ -134,6 +139,12 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -192,6 +203,12 @@
                     <mainClass>
                         ch.admin.bag.covidcertificate.backend.transformation.ws.TransformationWS
                     </mainClass>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                        </exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
@@ -217,22 +234,22 @@
                 <groupId>ch.ubique.openapi</groupId>
                 <artifactId>springboot-swagger-3</artifactId>
                 <configuration>
-                    <apiVersion>1.1.0</apiVersion>
+                    <apiVersion>2.2.0</apiVersion>
                     <basePackages>
-                        ch.admin.bag.covidcertificate.backend.exchange
+                        ch.admin.bag.covidcertificate.backend.transformation
                     </basePackages>
                     <controllers>
                         <controller>
                             ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController
                         </controller>
                     </controllers>
-                    <description>CH Covidcertificate Exchange API</description>
+                    <description>CH Covidcertificate Transformation API</description>
                     <apiUrls>
                         <apiUrl>https://covidcertificate-app-d.bit.admin.ch</apiUrl>
                         <apiUrl>https://covidcertificate-app-a.bit.admin.ch</apiUrl>
                         <apiUrl>https://covidcertificate-app.bit.admin.ch</apiUrl>
                     </apiUrls>
-                    <title>CH Covidcertificate Exchange API</title>
+                    <title>CH Covidcertificate Transformation API</title>
                 </configuration>
             </plugin>
             <plugin>

@@ -12,12 +12,14 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 @ComponentScan(basePackages = {"ch.admin.bag.covidcertificate.backend.transformation.ws.config"})
+@ConfigurationPropertiesScan("ch.admin.bag.covidcertificate.backend.transformation.ws.config.model")
 @EnableAutoConfiguration
 @EnableWebMvc
 public class TransformationWS {

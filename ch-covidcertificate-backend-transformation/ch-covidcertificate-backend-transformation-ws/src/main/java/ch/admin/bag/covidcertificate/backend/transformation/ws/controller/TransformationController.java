@@ -12,8 +12,11 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
-import ch.admin.bag.covidcertificate.backend.transformation.model.PdfPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.BitPdfPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.Language;
+import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.PdfClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.CertificateFormatException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
@@ -21,12 +24,16 @@ import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.RateLimitExceededException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.config.model.PdfConfig;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.service.RateLimitService;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.DccHelper;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.util.PdfMapper;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.ubique.openapi.docannotations.Documentation;
-import java.io.IOException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Locale;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,16 +59,22 @@ public class TransformationController {
     private final VerificationCheckClient verificationCheckClient;
     private final CertLightClient certLightClient;
     private final RateLimitService rateLimitService;
+    private final PdfClient pdfClient;
+    private final List<String> chIssuers;
     private final boolean debug;
 
     public TransformationController(
             VerificationCheckClient verificationCheckClient,
             CertLightClient certLightClient,
             RateLimitService rateLimitService,
+            PdfClient pdfClient,
+            PdfConfig pdfConfig,
             boolean debug) {
         this.verificationCheckClient = verificationCheckClient;
         this.certLightClient = certLightClient;
         this.rateLimitService = rateLimitService;
+        this.pdfClient = pdfClient;
+        this.chIssuers = pdfConfig.getChIssuers();
         this.debug = debug;
     }
 
@@ -80,14 +93,15 @@ public class TransformationController {
             responses = {
                 "200 => Certificate could be validated and transformed",
                 "400 => Certificate can't be decoded or is invalid",
+                "429 => Rate limit exceeded",
                 "502 => BIT or Verification gateway failed"
             })
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/certificateLight")
     public @ResponseBody ResponseEntity<CertLightPayload> getCertLight(
             @Valid @RequestBody HCertPayload hCertPayload)
-            throws IOException, ValidationException, ResponseParseError, NoSuchAlgorithmException,
-                    RateLimitExceededException, EmptyCertificateException,
+            throws JsonProcessingException, ValidationException, ResponseParseError,
+                    NoSuchAlgorithmException, RateLimitExceededException, EmptyCertificateException,
                     MultipleEntriesException {
 
         // Decode and verify hcert
@@ -119,9 +133,23 @@ public class TransformationController {
             })
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/pdf")
-    public @ResponseBody ResponseEntity<PdfPayload> getPdf(
-            @Valid @RequestBody HCertPayload hCertPayload) {
-        return ResponseEntity.notFound().build();
+    public @ResponseBody ResponseEntity<PdfResponse> getPdf(
+            @Valid @RequestBody HCertPayload hCertPayload, Locale locale)
+            throws ValidationException, ResponseParseError, EmptyCertificateException,
+                    MultipleEntriesException, JsonProcessingException {
+        // Decode and verify hcert
+        final var validationResponse = verificationCheckClient.validate(hCertPayload);
+        final var certificateHolder = validationResponse.getHcertDecoded();
+        if (certificateHolder == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        BitPdfPayload bitPdfPayload =
+                PdfMapper.mapToBitPayload(certificateHolder, Language.forLocale(locale));
+        if (!chIssuers.contains(certificateHolder.getIssuer())) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(pdfClient.getPdf(bitPdfPayload));
     }
 
     @ExceptionHandler(ValidationException.class)

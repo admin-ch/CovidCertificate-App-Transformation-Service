@@ -11,7 +11,9 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication(
         scanBasePackages = {"ch.admin.bag.covidcertificate.backend.transformation.ws.config"})
+@ConfigurationPropertiesScan("ch.admin.bag.covidcertificate.backend.transformation.ws.config.model")
 public class TestApplication {}
