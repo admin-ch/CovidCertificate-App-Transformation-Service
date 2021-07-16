@@ -10,13 +10,17 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
-import ch.admin.bag.covidcertificate.backend.transformation.ws.util.OauthWebClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.BitClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.BitClientMock;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 
 @Profile("test")
 @Configuration
@@ -43,7 +47,19 @@ public class TestConfig extends WsBaseConfig {
     }
 
     @Bean
-    public OauthWebClient oauthWebClient() {
-        return null;
+    public ClientRegistrationRepository clientRegistration() {
+        return new ClientRegistrationRepository() {
+            @Override
+            public ClientRegistration findByRegistrationId(String s) {
+                return null;
+            }
+        };
+    }
+
+    @Bean
+    @Override
+    public BitClient bitClient(
+            ClientRegistrationRepository clientRegistration, ObjectMapper objectMapper) {
+        return new BitClientMock(objectMapper);
     }
 }

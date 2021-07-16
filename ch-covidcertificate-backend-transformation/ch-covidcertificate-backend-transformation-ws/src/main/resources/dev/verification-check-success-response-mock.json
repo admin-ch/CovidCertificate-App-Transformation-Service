@@ -1,0 +1,60 @@
+{
+  "successState": {
+    "isLightCertificate": false,
+    "validityRange": {
+      "validFrom": [
+        2021,
+        3,
+        16,
+        0,
+        0
+      ],
+      "validUntil": [
+        2021,
+        9,
+        1,
+        0,
+        0
+      ]
+    }
+  },
+  "errorState": null,
+  "invalidState": null,
+  "hcertDecoded": {
+    "certificate": {
+      "ver": "1.3.0",
+      "nam": {
+        "familyName": "Testerin",
+        "standardizedFamilyName": "TESTERIN",
+        "givenName": "Ursula",
+        "standardizedGivenName": "URSULA"
+      },
+      "dob": "2000-01-01",
+      "v": null,
+      "t": null,
+      "r": [
+        {
+          "tg": "840539006",
+          "fr": "2021-03-06",
+          "co": "CH",
+          "is": "Bundesamt für Gesundheit (BAG)",
+          "df": "2021-03-16",
+          "du": "2021-09-01",
+          "ci": "urn:uvci:01:CH:3467CDB9DDCBAEC6231E8ABB"
+        }
+      ],
+      "personName": {
+        "familyName": "Testerin",
+        "standardizedFamilyName": "TESTERIN",
+        "givenName": "Ursula",
+        "standardizedGivenName": "URSULA"
+      },
+      "formattedDateOfBirth": "01.01.2000"
+    },
+    "qrCodeData": "HC1:NCFOXNYTSFDHJI8-.O0:A%1W RI%.BI06 JV1WGDNPZQG8G5HMROBTVGAI0AP6KPF6R:5SVBFAB4DNN95ZTM9:N7755QLQQ5%YQ+GO:SP$XO7IRJ+P*NR6NP40P/NRWNQ1ORQHP1IQDSOHJPN95U/3P+9:H9P1J4HGZJK HGK3M6DB+G9BYI ILN9C*XI5Q09L67Q98T5%BIMI5DN9XW5O PICA$O7T6LEJOA+MY55EII-EBAFKA.SC3M5VA81K0ECM8CXVDC8C 1J5OILR0R3E710-E1:PI/E2$4JY/KN$CLXKU7JI$2C4T /KS-KSZ269JTP46AL**I1ZG6$0+BN-IF9Y4KCT.ZKBY0P8HJ47V7J$%25I3KC3X83PF6VCEEALDDPC31/H2XO4Q0QPCG-D7N+6RU2B0300E2JAU47PGCI$V*6M00CN3W75EH0S1GJ$FIENE7G801F3DR:YRL:G5VTSOR07I. TBOUGZV6BDW.7FUVRGOA$GPEFTFW*ABXV5U0WUOC%+G8TKVXGK2PH*2A3Q0APDQ0Z8U04G3X5V%GP6M2*TN0V6YV%%HF1V44RD5QPVUR*VDXN9OJG0S6ZP7V21AD9OV2:U.5G::A*1B*11PPFL%49ZMBBB+UM:3OIFFOP8T.U2RAP:1HNI60L$WJA43NNLFRB+-U5*M0ML4MJ*AT.3SU87G%EMDUF$VFMI3 8T3M*GE:DNTP7QRG91S%NM8M1FPHEK7:SO-KSDIG7NVB+CM.E*EJ 17ZO5VHJXRLVD6PFLKIESYSMU4OY0.SR",
+    "expirationTime": 1688641767,
+    "issuedAt": 1625569767,
+    "issuer": "CH",
+    "certType": "RECOVERY"
+  }
+}

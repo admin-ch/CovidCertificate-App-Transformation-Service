@@ -10,6 +10,9 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.BitClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.BitClientOauthImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
@@ -20,6 +23,7 @@ import org.springframework.cloud.service.relational.DataSourceConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 
 @Configuration
 @Profile("cloud")
@@ -33,6 +37,12 @@ public class WsCloudConfig extends WsBaseConfig {
 
     @Value("${datasource.leakDetectionThreshold:0}")
     int dataSourceLeakDetectionThreshold;
+
+    @Value("${transform.light.endpoint}")
+    private String lightCertificateEndpoint;
+
+    @Value("${ws.jwt.client-id:default-client}")
+    private String clientId;
 
     @Bean
     @Override
@@ -59,5 +69,13 @@ public class WsCloudConfig extends WsBaseConfig {
                         .load();
         flyWay.migrate();
         return flyWay;
+    }
+
+    @Bean
+    @Override
+    public BitClient bitClient(
+            ClientRegistrationRepository clientRegistration, ObjectMapper objectMapper) {
+        return new BitClientOauthImpl(
+                clientId, clientRegistration, lightCertificateEndpoint, objectMapper);
     }
 }

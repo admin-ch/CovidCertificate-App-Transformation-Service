@@ -10,11 +10,7 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
 import javax.validation.constraints.NotNull;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @ExtendWith(SpringExtension.class)
-@ActiveProfiles({"test", "local", "security"})
+@ActiveProfiles({"test", "security"})
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application-test.properties")
 @ContextConfiguration(initializers = BaseControllerTest.DockerPostgresDataSourceInitializer.class)
@@ -51,14 +47,7 @@ public abstract class BaseControllerTest {
     }
 
     @Autowired protected MockMvc mockMvc;
-    protected ObjectMapper objectMapper =
-            new ObjectMapper()
-                    // Needed to ignore `subjectPublicKeyInfo` field in /updates response
-                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                    .registerModule(new KotlinModule())
-                    .registerModule(new JavaTimeModule())
-                    .disable(SerializationFeature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
-    ;
+    @Autowired protected ObjectMapper objectMapper;
 
     public static class DockerPostgresDataSourceInitializer
             implements ApplicationContextInitializer<ConfigurableApplicationContext> {
