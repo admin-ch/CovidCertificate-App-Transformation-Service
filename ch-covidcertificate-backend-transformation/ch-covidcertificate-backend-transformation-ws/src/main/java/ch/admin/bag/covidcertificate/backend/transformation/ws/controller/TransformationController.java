@@ -107,7 +107,7 @@ public class TransformationController {
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validate(hCertPayload);
         final var certificateHolder = validationResponse.getHcertDecoded();
-        if (certificateHolder == null) {
+        if (certificateHolder == null || !chIssuers.contains(certificateHolder.getIssuer())) {
             return ResponseEntity.badRequest().build();
         }
 
@@ -140,15 +140,12 @@ public class TransformationController {
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validate(hCertPayload);
         final var certificateHolder = validationResponse.getHcertDecoded();
-        if (certificateHolder == null) {
+        if (certificateHolder == null || !chIssuers.contains(certificateHolder.getIssuer())) {
             return ResponseEntity.badRequest().build();
         }
 
         BitPdfPayload bitPdfPayload =
                 PdfMapper.mapToBitPayload(certificateHolder, Language.forLocale(locale));
-        if (!chIssuers.contains(certificateHolder.getIssuer())) {
-            return ResponseEntity.badRequest().build();
-        }
         return ResponseEntity.ok(pdfClient.getPdf(bitPdfPayload));
     }
 
