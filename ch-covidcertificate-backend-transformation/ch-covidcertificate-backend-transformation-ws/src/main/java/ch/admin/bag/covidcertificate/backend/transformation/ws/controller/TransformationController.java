@@ -138,7 +138,7 @@ public class TransformationController {
             throws ValidationException, ResponseParseError, EmptyCertificateException,
                     MultipleEntriesException, JsonProcessingException {
         // Decode and verify hcert
-        final var validationResponse = verificationCheckClient.validate(hCertPayload);
+        final var validationResponse = verificationCheckClient.validateSignature(hCertPayload);
         final var certificateHolder = validationResponse.getHcertDecoded();
         if (certificateHolder == null || !chIssuers.contains(certificateHolder.getIssuer())) {
             return ResponseEntity.badRequest().build();
