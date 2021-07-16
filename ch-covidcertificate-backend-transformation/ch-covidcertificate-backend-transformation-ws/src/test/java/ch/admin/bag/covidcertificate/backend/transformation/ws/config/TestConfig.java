@@ -13,6 +13,7 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.config;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.controller.TransformationController;
 import java.time.ZoneId;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +36,12 @@ public class TestConfig {
     public TransformationController transformationController(
             VerificationCheckClient verificationCheckClient) {
         return new TransformationController(
-                "", verificationCheckClient, null, ZoneId.systemDefault(), true);
+                "",
+                verificationCheckClient,
+                null,
+                ZoneId.systemDefault(),
+                List.of("CH", "CH BAG"),
+                true);
     }
 
     @Bean

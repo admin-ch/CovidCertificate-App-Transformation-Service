@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ public class TransformationController {
     private final OauthWebClient oauthWebClient;
     private final ObjectMapper objectMapper;
     private final ZoneId verificationZoneId;
+    private final List<String> chIssuers;
     private final boolean debug;
 
     public TransformationController(
@@ -61,13 +63,16 @@ public class TransformationController {
             VerificationCheckClient verificationCheckClient,
             OauthWebClient tokenReceiver,
             ZoneId verificationZoneId,
+            List<String> chIssuers,
             boolean debug) {
         this.lightCertificateEnpoint = lightCertificateEndpoint;
         this.verificationCheckClient = verificationCheckClient;
         this.oauthWebClient = tokenReceiver;
         this.verificationZoneId = verificationZoneId;
         this.objectMapper = new ObjectMapper();
+        this.chIssuers = chIssuers;
         this.debug = debug;
+        logger.info("only accepting the following issuers: {}", chIssuers);
     }
 
     @Documentation(
@@ -95,7 +100,7 @@ public class TransformationController {
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validate(hCertPayload);
         final var certificateHolder = validationResponse.getHcertDecoded();
-        if (certificateHolder == null) {
+        if (certificateHolder == null || !chIssuers.contains(certificateHolder.getIssuer())) {
             return ResponseEntity.badRequest().build();
         }
 

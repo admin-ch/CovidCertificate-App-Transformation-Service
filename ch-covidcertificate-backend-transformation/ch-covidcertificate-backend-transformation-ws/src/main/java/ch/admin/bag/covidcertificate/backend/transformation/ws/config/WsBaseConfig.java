@@ -54,12 +54,14 @@ public abstract class WsBaseConfig {
             VerificationCheckClient verificationCheckClient,
             OauthWebClient tokenReceiver,
             ZoneId verificationZoneId,
+            @Value("${transform.chIssuers:CH,CH BAG}") List<String> chIssuers,
             boolean debug) {
         return new TransformationController(
                 lightCertificateEnpoint,
                 verificationCheckClient,
                 tokenReceiver,
                 verificationZoneId,
+                chIssuers,
                 debug);
     }
 
