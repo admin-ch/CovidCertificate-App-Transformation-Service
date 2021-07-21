@@ -94,7 +94,7 @@ public class TransformationController {
                 "200 => Certificate could be validated and transformed",
                 "400 => Certificate can't be decoded or is invalid",
                 "429 => Rate limit exceeded",
-                "502 => BIT or Verification gateway failed"
+                "502 => Call to Certificate Light API or Verification Check Service failed"
             })
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/certificateLight")
@@ -129,7 +129,7 @@ public class TransformationController {
             responses = {
                 "200 => Certificate could be validated and transformed",
                 "400 => Certificate can't be decoded or is invalid",
-                "502 => BIT or Verification gateway failed"
+                "502 => Call to PDF API or Verification Check Service failed"
             })
     @CrossOrigin(origins = {"https://editor.swagger.io"})
     @PostMapping(path = "/pdf")
