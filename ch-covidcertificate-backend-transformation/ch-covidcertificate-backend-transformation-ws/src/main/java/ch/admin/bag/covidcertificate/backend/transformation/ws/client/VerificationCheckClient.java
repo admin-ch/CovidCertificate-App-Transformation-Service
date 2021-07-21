@@ -4,10 +4,11 @@ import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ResponseParseError;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.ValidationException;
+import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.CertificateHolder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -45,11 +46,31 @@ public class VerificationCheckClient {
      */
     public VerificationResponse validate(HCertPayload hCertPayload)
             throws ValidationException, ResponseParseError {
-        final var verificationResponse = verify(hCertPayload);
-        if (verificationResponse != null && verificationResponse.getSuccessState() != null) {
-            return verificationResponse;
-        } else if (verificationResponse == null) {
+        return internalValidate(hCertPayload, false);
+    }
+
+    /**
+     * Decode and verify the signature a client HCert
+     *
+     * @param hCertPayload payload as sent with the original request
+     * @return the decoded certificate if it can be decoded and is valid, null if it can't be
+     *     decoded
+     * @throws ValidationException certificate signature isn't valid
+     * @throws ResponseParseError response from validation endpoint couldn't be parsed
+     */
+    public VerificationResponse validateSignature(HCertPayload hCertPayload)
+            throws ValidationException, ResponseParseError {
+        return internalValidate(hCertPayload, true);
+    }
+
+    private VerificationResponse internalValidate(HCertPayload hCertPayload, boolean signatureOnly)
+            throws ValidationException, ResponseParseError {
+        final var verificationResponse = verify(hCertPayload, signatureOnly);
+        if (verificationResponse == null) {
             throw new ResponseParseError(null);
+        } else if (verificationResponse.isValid()
+                || (signatureOnly && verificationResponse.signatureIsValid())) {
+            return verificationResponse;
         } else {
             throw new ValidationException(
                     verificationResponse.getErrorState() != null
@@ -58,15 +79,16 @@ public class VerificationCheckClient {
         }
     }
 
-    private VerificationResponse verify(HCertPayload hCertPayload) throws ResponseParseError {
+    private VerificationResponse verify(HCertPayload hCertPayload, boolean signatureOnly)
+            throws ResponseParseError {
         try {
             final var uri =
                     UriComponentsBuilder.fromHttpUrl(baseurl + verifyEndpoint).build().toUri();
             final var request =
                     RequestEntity.post(uri).headers(createRequestHeaders()).body(hCertPayload);
             final var response = rt.exchange(request, String.class);
-            return parseResponse(response);
-        } catch (IOException e) {
+            return parseResponse(response, signatureOnly);
+        } catch (JsonProcessingException e) {
             logger.error("Couldn't verify certificate", e);
         } catch (HttpStatusCodeException e) {
             logger.info("Certificate couldn't be verified", e);
@@ -80,14 +102,41 @@ public class VerificationCheckClient {
         return headers;
     }
 
-    private VerificationResponse parseResponse(ResponseEntity<String> response)
+    private VerificationResponse parseResponse(
+            ResponseEntity<String> response, boolean signatureOnly)
             throws ResponseParseError, JsonProcessingException {
         try {
             return objectMapper.readValue(response.getBody(), VerificationResponse.class);
         } catch (JsonMappingException ex) {
-            throw new ResponseParseError(objectMapper.readTree(response.getBody()));
+            // json deserialization fails when invalid state or error state is not null
+            JsonNode node = objectMapper.readTree(response.getBody());
+            if (signatureOnly && signatureIsValid(node)) {
+                VerificationResponse verificationResponse = new VerificationResponse();
+                verificationResponse.setHcertDecoded(
+                        objectMapper.treeToValue(
+                                node.get("hcertDecoded"), CertificateHolder.class));
+                return verificationResponse;
+            } else {
+                throw new ResponseParseError(node);
+            }
         } catch (Exception e) {
             throw new ResponseParseError(null);
+        }
+    }
+
+    private boolean signatureIsValid(JsonNode node) {
+        JsonNode invalidState = node.get("invalidState");
+        if (!node.get("successState").isNull()) { // success state -> everything is valid
+            return true;
+        } else if (invalidState.isNull()) {
+            // when no invalid state is present, it is not possible to evaluate whether the
+            // signature is valid
+            return false;
+        } else {
+            // an empty signatureState object within the invalidState node means the signature was
+            // valid
+            JsonNode signatureState = invalidState.get("signatureState");
+            return signatureState.isNull() || signatureState.isEmpty();
         }
     }
 }
