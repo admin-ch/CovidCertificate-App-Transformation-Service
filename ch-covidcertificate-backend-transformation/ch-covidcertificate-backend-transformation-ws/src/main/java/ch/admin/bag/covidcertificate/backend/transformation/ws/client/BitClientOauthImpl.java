@@ -11,9 +11,11 @@ import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2A
 import org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 public class BitClientOauthImpl implements BitClient {
+
     private final String lightCertificateEndpoint;
     private final ObjectMapper objectMapper;
     private final WebClient webClient;
@@ -32,7 +34,19 @@ public class BitClientOauthImpl implements BitClient {
                         new InMemoryOAuth2AuthorizedClientService(clientRegistrations));
         var oauth = new ServletOAuth2AuthorizedClientExchangeFilterFunction(clientRepository);
         oauth.setDefaultClientRegistrationId(clientId);
-        this.webClient = WebClient.builder().filter(oauth).build();
+        this.webClient =
+                WebClient.builder()
+                        .filter(oauth)
+                        .exchangeStrategies(
+                                ExchangeStrategies.builder()
+                                        .codecs(
+                                                configurer ->
+                                                        configurer
+                                                                .defaultCodecs()
+                                                                .maxInMemorySize(
+                                                                        20 * 1024 * 1024)) // 20MB
+                                        .build())
+                        .build();
     }
 
     @Override
