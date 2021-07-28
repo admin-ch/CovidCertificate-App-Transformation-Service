@@ -32,6 +32,6 @@ public class SchedulingConfig {
     @SchedulerLock(name = "cleanDb", lockAtLeastFor = "PT15S")
     public void cleanDb() {
         logger.info("Cleaning rate-limit database entries");
-        rateLimitDataService.cleanDb(retentionPeriod);
+        rateLimitDataService.removeOldLogs(retentionPeriod);
     }
 }

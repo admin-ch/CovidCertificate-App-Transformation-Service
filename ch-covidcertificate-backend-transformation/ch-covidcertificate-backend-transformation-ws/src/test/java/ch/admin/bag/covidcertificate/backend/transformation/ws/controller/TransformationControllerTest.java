@@ -10,6 +10,7 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
@@ -73,6 +74,8 @@ class TransformationControllerTest extends BaseControllerTest {
     private static final String VERIFICATION_CHECK_SUCCESS_RESPONSE_MOCK =
             "src/main/resources/dev/verification-check-success-response-mock.json";
     private String verificationCheckSuccessResponse;
+
+    private static final int rateLimit = 10;
 
     @BeforeAll
     public void setup() {
@@ -165,37 +168,71 @@ class TransformationControllerTest extends BaseControllerTest {
 
     @Test
     void getCertLightTest() throws Exception {
-        String hcertPayloadString = getHcertPayloadString();
-        setupVerificationCheckMockServer(hcertPayloadString, verificationCheckSuccessResponse);
+        boolean rateLimitTested = false;
+        final String hcertPayloadString = getHcertPayloadString();
+        for (int i = 0; i < rateLimit + 1; i++) {
+            setupVerificationCheckMockServer(hcertPayloadString, verificationCheckSuccessResponse);
+            boolean rateLimitExceeded = i >= rateLimit;
+            HttpStatus expectedStatus =
+                    rateLimitExceeded ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.OK;
+            final MockHttpServletResponse response =
+                    requestLightCert(hcertPayloadString, expectedStatus);
+            if (!rateLimitExceeded) {
+                final var responsePayload =
+                        objectMapper.readValue(
+                                response.getContentAsString(), CertLightResponse.class);
+                assertEquals(certLightMock.getQrCode(), responsePayload.getQrCode());
+            } else {
+                rateLimitTested = true;
+            }
+        }
+        assertTrue(rateLimitTested);
+    }
+
+    private MockHttpServletResponse requestLightCert(
+            String hcertPayloadString, HttpStatus expectedStatus) throws Exception {
         final MockHttpServletResponse response =
                 mockMvc.perform(
                                 post(BASE_URL + CERTLIGHT_ENDPOINT)
                                         .content(hcertPayloadString)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .accept(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is2xxSuccessful())
+                        .andExpect(status().is(expectedStatus.value()))
                         .andReturn()
                         .getResponse();
-        final var responsePayload =
-                objectMapper.readValue(response.getContentAsString(), CertLightResponse.class);
-        assertEquals(certLightMock.getQrCode(), responsePayload.getQrCode());
+        return response;
     }
 
     @Test
     void getPdfTest() throws Exception {
-        String hcertPayloadString = getHcertPayloadString();
-        setupVerificationCheckMockServer(hcertPayloadString, verificationCheckSuccessResponse);
-        final MockHttpServletResponse response =
-                mockMvc.perform(
-                                post(BASE_URL + PDF_ENDPOINT)
-                                        .content(hcertPayloadString)
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .accept(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is2xxSuccessful())
-                        .andReturn()
-                        .getResponse();
-        final var responsePayload =
-                objectMapper.readValue(response.getContentAsString(), PdfResponse.class);
-        assertEquals(mockPdfResponse.getPdf(), responsePayload.getPdf());
+        boolean rateLimitTested = false;
+        final String hcertPayloadString = getHcertPayloadString();
+        for (int i = 0; i < rateLimit + 1; i++) {
+            setupVerificationCheckMockServer(hcertPayloadString, verificationCheckSuccessResponse);
+            boolean rateLimitExceeded = i >= rateLimit;
+            HttpStatus expectedStatus =
+                    rateLimitExceeded ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.OK;
+            final MockHttpServletResponse response = requestPdf(hcertPayloadString, expectedStatus);
+            if (!rateLimitExceeded) {
+                final var responsePayload =
+                        objectMapper.readValue(response.getContentAsString(), PdfResponse.class);
+                assertEquals(mockPdfResponse.getPdf(), responsePayload.getPdf());
+            } else {
+                rateLimitTested = true;
+            }
+        }
+        assertTrue(rateLimitTested);
+    }
+
+    private MockHttpServletResponse requestPdf(String hcertPayloadString, HttpStatus expectedStatus)
+            throws Exception {
+        return mockMvc.perform(
+                        post(BASE_URL + PDF_ENDPOINT)
+                                .content(hcertPayloadString)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(expectedStatus.value()))
+                .andReturn()
+                .getResponse();
     }
 }

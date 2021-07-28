@@ -1,6 +1,7 @@
 package ch.admin.bag.covidcertificate.backend.transformation.data.impl;
 
 import ch.admin.bag.covidcertificate.backend.transformation.data.RateLimitDataService;
+import ch.admin.bag.covidcertificate.backend.transformation.model.TransformationType;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -24,36 +25,44 @@ public class JdbcRateLimitDataServiceImpl implements RateLimitDataService {
         this.jt = new NamedParameterJdbcTemplate(dataSource);
         this.rateLimitInsert =
                 new SimpleJdbcInsert(dataSource)
-                        .withTableName("t_rate_limit")
-                        .usingGeneratedKeyColumns("pk_rate_limit", "created_at");
+                        .withTableName("t_transformation_log")
+                        .usingGeneratedKeyColumns("pk_transformation_log_id", "created_at");
     }
 
     @Override
     @Transactional(readOnly = true)
-    public int getCurrentRate(String uvciHash) {
-        logger.debug("Fetching current count for uvci hash {}", uvciHash);
-        final var getCountSql = "select count(1) from t_rate_limit where uvci_hash = :uvci_hash";
-        final var params = new MapSqlParameterSource("uvci_hash", uvciHash);
-        return jt.queryForObject(getCountSql, params, Integer.class);
+    public int getTransformationCount(String uvciHash, TransformationType type) {
+        logger.debug("Fetching current count for type {} and uvci hash {}", type, uvciHash);
+        final var getCountSql =
+                "select count(1) from t_transformation_log"
+                        + " where uvci_hash = :uvci_hash"
+                        + " and type = :type";
+        return jt.queryForObject(getCountSql, createParams(uvciHash, type), Integer.class);
     }
 
     @Override
     @Transactional(readOnly = false)
-    public void increaseRate(String uvciHash) {
-        logger.debug("Adding entry for uvci hash: {}", uvciHash);
+    public void addTransformationLog(String uvciHash, TransformationType type) {
+        logger.debug("Adding log for type {} and uvci hash: {}", type, uvciHash);
         if (uvciHash != null && !uvciHash.isBlank()) {
-            var params = new MapSqlParameterSource("uvci_hash", uvciHash);
-            rateLimitInsert.execute(params);
+            rateLimitInsert.execute(createParams(uvciHash, type));
         }
     }
 
+    private MapSqlParameterSource createParams(String uvciHash, TransformationType type) {
+        var params = new MapSqlParameterSource();
+        params.addValue("uvci_hash", uvciHash);
+        params.addValue("type", type.name());
+        return params;
+    }
+
     @Override
     @Transactional(readOnly = false)
-    public int cleanDb(Duration retentionPeriod) {
+    public int removeOldLogs(Duration retentionPeriod) {
         var retentionTime = Date.from(Instant.now().minus(retentionPeriod));
         logger.debug("Removing entries before {}", retentionTime);
         var params = new MapSqlParameterSource("retention_time", retentionTime);
-        var cleanupSql = "delete from t_rate_limit where created_at < :retention_time";
+        var cleanupSql = "delete from t_transformation_log where created_at < :retention_time";
         return jt.update(cleanupSql, params);
     }
 }
