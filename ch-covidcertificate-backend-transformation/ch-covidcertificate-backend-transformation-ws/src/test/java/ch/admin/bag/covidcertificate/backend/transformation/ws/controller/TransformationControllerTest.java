@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.TransformationType;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckNationalRulesState;
@@ -176,7 +177,8 @@ class TransformationControllerTest extends BaseControllerTest {
             HttpStatus expectedStatus =
                     rateLimitExceeded ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.OK;
             final MockHttpServletResponse response =
-                    requestLightCert(hcertPayloadString, expectedStatus);
+                    requestTransformation(
+                            hcertPayloadString, TransformationType.LIGHT_CERT, expectedStatus);
             if (!rateLimitExceeded) {
                 final var responsePayload =
                         objectMapper.readValue(
@@ -189,18 +191,28 @@ class TransformationControllerTest extends BaseControllerTest {
         assertTrue(rateLimitTested);
     }
 
-    private MockHttpServletResponse requestLightCert(
-            String hcertPayloadString, HttpStatus expectedStatus) throws Exception {
-        final MockHttpServletResponse response =
-                mockMvc.perform(
-                                post(BASE_URL + CERTLIGHT_ENDPOINT)
-                                        .content(hcertPayloadString)
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .accept(MediaType.APPLICATION_JSON))
-                        .andExpect(status().is(expectedStatus.value()))
-                        .andReturn()
-                        .getResponse();
-        return response;
+    private MockHttpServletResponse requestTransformation(
+            String hcertPayloadString, TransformationType type, HttpStatus expectedStatus)
+            throws Exception {
+        String url = BASE_URL;
+        switch (type) {
+            case LIGHT_CERT:
+                url += CERTLIGHT_ENDPOINT;
+                break;
+            case PDF:
+                url += PDF_ENDPOINT;
+                break;
+            default:
+                throw new RuntimeException("received unexpected type: " + type);
+        }
+        return mockMvc.perform(
+                        post(url)
+                                .content(hcertPayloadString)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(expectedStatus.value()))
+                .andReturn()
+                .getResponse();
     }
 
     @Test
@@ -212,7 +224,9 @@ class TransformationControllerTest extends BaseControllerTest {
             boolean rateLimitExceeded = i >= rateLimit;
             HttpStatus expectedStatus =
                     rateLimitExceeded ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.OK;
-            final MockHttpServletResponse response = requestPdf(hcertPayloadString, expectedStatus);
+            final MockHttpServletResponse response =
+                    requestTransformation(
+                            hcertPayloadString, TransformationType.PDF, expectedStatus);
             if (!rateLimitExceeded) {
                 final var responsePayload =
                         objectMapper.readValue(response.getContentAsString(), PdfResponse.class);
@@ -222,17 +236,5 @@ class TransformationControllerTest extends BaseControllerTest {
             }
         }
         assertTrue(rateLimitTested);
-    }
-
-    private MockHttpServletResponse requestPdf(String hcertPayloadString, HttpStatus expectedStatus)
-            throws Exception {
-        return mockMvc.perform(
-                        post(BASE_URL + PDF_ENDPOINT)
-                                .content(hcertPayloadString)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().is(expectedStatus.value()))
-                .andReturn()
-                .getResponse();
     }
 }
