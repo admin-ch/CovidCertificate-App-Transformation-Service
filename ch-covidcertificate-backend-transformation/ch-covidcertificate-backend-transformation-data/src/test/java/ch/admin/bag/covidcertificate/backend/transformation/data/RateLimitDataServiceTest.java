@@ -2,6 +2,7 @@ package ch.admin.bag.covidcertificate.backend.transformation.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import ch.admin.bag.covidcertificate.backend.transformation.model.TransformationType;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
@@ -14,37 +15,68 @@ class RateLimitDataServiceTest extends BaseDataServiceTest {
 
     @Test
     @Transactional
-    void increaseRateTest() {
-        rateLimitDataService.increaseRate("uvci_1");
-        rateLimitDataService.increaseRate("uvci_1");
-        rateLimitDataService.increaseRate("");
-        rateLimitDataService.increaseRate(null);
-        assertEquals(2, rateLimitDataService.getCurrentRate("uvci_1"));
+    void addTransformationLogTest() {
+        final String uvci1 = "uvci_1";
+        rateLimitDataService.addTransformationLog(uvci1, TransformationType.LIGHT_CERT);
+        rateLimitDataService.addTransformationLog(uvci1, TransformationType.LIGHT_CERT);
+        rateLimitDataService.addTransformationLog("", TransformationType.LIGHT_CERT);
+        rateLimitDataService.addTransformationLog(null, TransformationType.LIGHT_CERT);
+        assertEquals(
+                2,
+                rateLimitDataService.getTransformationCount(uvci1, TransformationType.LIGHT_CERT));
+        assertEquals(0, rateLimitDataService.getTransformationCount(uvci1, TransformationType.PDF));
     }
 
     @Test
     @Transactional
-    void getCurrentRateTest() {
-        rateLimitDataService.increaseRate("uvci_1");
-        rateLimitDataService.increaseRate("uvci_2");
-        rateLimitDataService.increaseRate("uvci_1");
-        assertEquals(2, rateLimitDataService.getCurrentRate("uvci_1"));
-        assertEquals(1, rateLimitDataService.getCurrentRate("uvci_2"));
-        assertEquals(0, rateLimitDataService.getCurrentRate("uvci_3"));
+    void getTransformationCountTest() {
+        final String uvci1 = "uvci_1";
+        final String uvci2 = "uvci_2";
+        final String uvci3 = "uvci_3";
+        rateLimitDataService.addTransformationLog(uvci1, TransformationType.LIGHT_CERT);
+        rateLimitDataService.addTransformationLog(uvci2, TransformationType.LIGHT_CERT);
+        rateLimitDataService.addTransformationLog(uvci1, TransformationType.LIGHT_CERT);
+        assertEquals(
+                2,
+                rateLimitDataService.getTransformationCount(uvci1, TransformationType.LIGHT_CERT));
+        assertEquals(
+                1,
+                rateLimitDataService.getTransformationCount(uvci2, TransformationType.LIGHT_CERT));
+        assertEquals(
+                0,
+                rateLimitDataService.getTransformationCount(uvci3, TransformationType.LIGHT_CERT));
     }
 
     @Test
     @Transactional
-    void cleanDbTest() throws InterruptedException {
-        rateLimitDataService.increaseRate("uvci_1");
-        rateLimitDataService.increaseRate("uvci_2");
-        assertEquals(1, rateLimitDataService.getCurrentRate("uvci_1"));
-        assertEquals(1, rateLimitDataService.getCurrentRate("uvci_2"));
-        assertEquals(0, rateLimitDataService.getCurrentRate("uvci_3"));
+    void removeOldLogsTest() throws Exception {
+        final String uvci1 = "uvci_1";
+        final String uvci2 = "uvci_2";
+        final String uvci3 = "uvci_3";
+        rateLimitDataService.addTransformationLog(uvci1, TransformationType.LIGHT_CERT);
+        rateLimitDataService.addTransformationLog(uvci1, TransformationType.PDF);
+        rateLimitDataService.addTransformationLog(uvci1, TransformationType.PDF);
+        rateLimitDataService.addTransformationLog(uvci2, TransformationType.LIGHT_CERT);
+        assertEquals(
+                1,
+                rateLimitDataService.getTransformationCount(uvci1, TransformationType.LIGHT_CERT));
+        assertEquals(2, rateLimitDataService.getTransformationCount(uvci1, TransformationType.PDF));
+        assertEquals(
+                1,
+                rateLimitDataService.getTransformationCount(uvci2, TransformationType.LIGHT_CERT));
+        assertEquals(
+                0,
+                rateLimitDataService.getTransformationCount(uvci3, TransformationType.LIGHT_CERT));
         TimeUnit.SECONDS.sleep(1);
-        rateLimitDataService.cleanDb(Duration.ZERO);
-        assertEquals(0, rateLimitDataService.getCurrentRate("uvci_1"));
-        assertEquals(0, rateLimitDataService.getCurrentRate("uvci_2"));
-        assertEquals(0, rateLimitDataService.getCurrentRate("uvci_3"));
+        rateLimitDataService.removeOldLogs(Duration.ZERO);
+        assertEquals(
+                0,
+                rateLimitDataService.getTransformationCount(uvci1, TransformationType.LIGHT_CERT));
+        assertEquals(
+                0,
+                rateLimitDataService.getTransformationCount(uvci2, TransformationType.LIGHT_CERT));
+        assertEquals(
+                0,
+                rateLimitDataService.getTransformationCount(uvci3, TransformationType.LIGHT_CERT));
     }
 }

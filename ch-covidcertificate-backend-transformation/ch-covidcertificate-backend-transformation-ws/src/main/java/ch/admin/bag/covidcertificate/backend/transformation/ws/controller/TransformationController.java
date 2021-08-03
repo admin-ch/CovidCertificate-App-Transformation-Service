@@ -12,6 +12,7 @@ package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.TransformationType;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.BitPdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.Language;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
@@ -114,11 +115,12 @@ public class TransformationController {
         var euCert = (DccCert) certificateHolder.getCertificate();
 
         final String uvci = DccHelper.getUvci(euCert);
-        rateLimitService.checkRateLimit(uvci);
+        TransformationType transformationType = TransformationType.LIGHT_CERT;
+        rateLimitService.checkRateLimit(uvci, transformationType);
 
         final var validityRange = validationResponse.getSuccessState().getValidityRange();
         CertLightResponse certLight = certLightClient.getCertLight(euCert, validityRange);
-        rateLimitService.updateCount(uvci);
+        rateLimitService.logTransformation(uvci, transformationType);
 
         return ResponseEntity.ok(certLight);
     }
@@ -129,6 +131,7 @@ public class TransformationController {
             responses = {
                 "200 => Certificate could be validated and transformed",
                 "400 => Certificate can't be decoded or is invalid",
+                "429 => Rate limit exceeded",
                 "502 => Call to PDF API or Verification Check Service failed"
             })
     @CrossOrigin(origins = {"https://editor.swagger.io"})
@@ -136,7 +139,8 @@ public class TransformationController {
     public @ResponseBody ResponseEntity<PdfResponse> getPdf(
             @Valid @RequestBody HCertPayload hCertPayload, Locale locale)
             throws ValidationException, ResponseParseError, EmptyCertificateException,
-                    MultipleEntriesException, JsonProcessingException {
+                    MultipleEntriesException, JsonProcessingException, RateLimitExceededException,
+                    NoSuchAlgorithmException {
         // Decode and verify hcert
         final var validationResponse = verificationCheckClient.validateSignature(hCertPayload);
         final var certificateHolder = validationResponse.getHcertDecoded();
@@ -144,9 +148,15 @@ public class TransformationController {
             return ResponseEntity.badRequest().build();
         }
 
+        final String uvci = DccHelper.getUvci((DccCert) certificateHolder.getCertificate());
+        TransformationType transformationType = TransformationType.PDF;
+        rateLimitService.checkRateLimit(uvci, transformationType);
+
         BitPdfPayload bitPdfPayload =
                 PdfMapper.mapToBitPayload(certificateHolder, Language.forLocale(locale));
-        return ResponseEntity.ok(pdfClient.getPdf(bitPdfPayload));
+        PdfResponse pdf = pdfClient.getPdf(bitPdfPayload);
+        rateLimitService.logTransformation(uvci, transformationType);
+        return ResponseEntity.ok(pdf);
     }
 
     @ExceptionHandler(ValidationException.class)
