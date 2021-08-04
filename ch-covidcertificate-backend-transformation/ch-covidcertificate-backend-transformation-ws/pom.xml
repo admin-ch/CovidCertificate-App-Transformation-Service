@@ -93,17 +93,6 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!--    Core SDK    -->
-        <dependency>
-            <groupId>ch.admin.bag.covidcertificate</groupId>
-            <artifactId>sdk-core</artifactId>
-            <version>1.1.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-kotlin</artifactId>
-        </dependency>
-
         <!--    Testcontainers    -->
         <dependency>
             <groupId>org.testcontainers</groupId>
