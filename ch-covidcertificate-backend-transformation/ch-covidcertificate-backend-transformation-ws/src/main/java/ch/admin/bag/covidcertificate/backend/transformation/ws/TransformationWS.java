@@ -18,8 +18,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
-@ComponentScan(basePackages = {"ch.admin.bag.covidcertificate.backend.transformation.ws.config"})
-@ConfigurationPropertiesScan("ch.admin.bag.covidcertificate.backend.transformation.ws.config.model")
+@ComponentScan(
+        basePackages = {
+            "ch.admin.bag.covidcertificate.backend.transformation.ws.config",
+            "ch.admin.bag.covidcertificate.log",
+            "ch.admin.bag.covidcertificate.rest"
+        })
+@ConfigurationPropertiesScan(
+        basePackages = {
+            "ch.admin.bag.covidcertificate.backend.transformation.ws.config.model",
+            "ch.admin.bag.covidcertificate.log",
+            "ch.admin.bag.covidcertificate.rest"
+        })
 @EnableAutoConfiguration
 @EnableWebMvc
 public class TransformationWS {

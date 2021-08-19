@@ -14,6 +14,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication(
-        scanBasePackages = {"ch.admin.bag.covidcertificate.backend.transformation.ws.config"})
-@ConfigurationPropertiesScan("ch.admin.bag.covidcertificate.backend.transformation.ws.config.model")
+        scanBasePackages = {
+            "ch.admin.bag.covidcertificate.backend.transformation.ws.config",
+            "ch.admin.bag.covidcertificate.log",
+            "ch.admin.bag.covidcertificate.rest"
+        })
+@ConfigurationPropertiesScan(
+        basePackages = {
+            "ch.admin.bag.covidcertificate.backend.transformation.ws.config.model",
+            "ch.admin.bag.covidcertificate.log",
+            "ch.admin.bag.covidcertificate.rest"
+        })
 public class TestApplication {}
