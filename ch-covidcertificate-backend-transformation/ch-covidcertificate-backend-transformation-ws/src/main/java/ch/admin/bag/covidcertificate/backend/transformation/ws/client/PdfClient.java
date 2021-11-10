@@ -23,9 +23,13 @@ public class PdfClient {
         DecodedCert decodedCert = payload.getDecodedCert();
         String endpoint;
         if (decodedCert instanceof DecodedTCert) {
-            if(((DecodedTCert) decodedCert).getT().get(0).getTt().equals(TestTypes.TEST_TYPE_ANTIBODY)){
+            if (((DecodedTCert) decodedCert)
+                    .getT()
+                    .get(0)
+                    .getTt()
+                    .equals(TestTypes.TEST_TYPE_ANTIBODY)) {
                 endpoint = pdfConfig.getAntibodyEndpoint();
-            }else{
+            } else {
                 endpoint = pdfConfig.getTestEndpoint();
             }
         } else if (decodedCert instanceof DecodedRCert) {
