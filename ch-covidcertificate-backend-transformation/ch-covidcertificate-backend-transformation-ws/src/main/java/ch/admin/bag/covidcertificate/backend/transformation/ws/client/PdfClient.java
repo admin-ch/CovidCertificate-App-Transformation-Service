@@ -1,5 +1,6 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.client;
 
+import ch.admin.bag.covidcertificate.backend.transformation.model.TestTypes;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.BitPdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedCert;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedRCert;
@@ -22,7 +23,15 @@ public class PdfClient {
         DecodedCert decodedCert = payload.getDecodedCert();
         String endpoint;
         if (decodedCert instanceof DecodedTCert) {
-            endpoint = pdfConfig.getTestEndpoint();
+            if (((DecodedTCert) decodedCert)
+                    .getT()
+                    .get(0)
+                    .getTt()
+                    .equals(TestTypes.TEST_TYPE_ANTIBODY)) {
+                endpoint = pdfConfig.getAntibodyEndpoint();
+            } else {
+                endpoint = pdfConfig.getTestEndpoint();
+            }
         } else if (decodedCert instanceof DecodedRCert) {
             endpoint = pdfConfig.getRecoveryEndpoint();
         } else if (decodedCert instanceof DecodedVCert) {
