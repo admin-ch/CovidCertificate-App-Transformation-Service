@@ -11,6 +11,8 @@ public class PdfConfig {
     private String vaccinationEndpoint;
     private String antibodyEndpoint;
 
+    private String vaccinationTouristEndpoint;
+
     public List<String> getChIssuers() {
         return chIssuers;
     }
@@ -50,4 +52,11 @@ public class PdfConfig {
     public void setAntibodyEndpoint(String antibodyEndpoint) {
         this.antibodyEndpoint = antibodyEndpoint;
     }
+
+    public String getVaccinationTouristEndpoint() { return vaccinationTouristEndpoint; }
+
+    public void setVaccinationTouristEndpoint(String vaccinationTouristEndpoint) {
+        this.vaccinationTouristEndpoint = vaccinationTouristEndpoint;
+    }
+
 }

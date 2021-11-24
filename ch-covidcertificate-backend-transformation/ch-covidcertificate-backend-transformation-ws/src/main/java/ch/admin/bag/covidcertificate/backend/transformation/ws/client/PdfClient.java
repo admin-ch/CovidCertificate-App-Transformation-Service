@@ -1,6 +1,7 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.client;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.TestTypes;
+import ch.admin.bag.covidcertificate.backend.transformation.model.VaccinationCertificateTypes;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.BitPdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedCert;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedRCert;
@@ -35,7 +36,15 @@ public class PdfClient {
         } else if (decodedCert instanceof DecodedRCert) {
             endpoint = pdfConfig.getRecoveryEndpoint();
         } else if (decodedCert instanceof DecodedVCert) {
-            endpoint = pdfConfig.getVaccinationEndpoint();
+            if (((DecodedVCert) decodedCert)
+                .getV()
+                .get(0)
+                .getMp()
+                .endsWith(VaccinationCertificateTypes.VACCINATION_CERTIFICATE_TYPE_TOURIST_SUFFIX)) {
+                endpoint = pdfConfig.getVaccinationTouristEndpoint();
+            } else {
+                endpoint = pdfConfig.getVaccinationEndpoint();
+            }
         } else {
             throw new RuntimeException(
                     "unexpected class received: " + decodedCert.getClass().getName());
