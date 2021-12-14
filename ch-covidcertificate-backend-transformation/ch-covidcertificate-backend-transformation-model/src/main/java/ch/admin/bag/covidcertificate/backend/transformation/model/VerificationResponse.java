@@ -2,22 +2,46 @@ package ch.admin.bag.covidcertificate.backend.transformation.model;
 
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.CertificateHolder;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckSignatureState;
+import ch.admin.bag.covidcertificate.sdk.core.models.state.SuccessState.WalletSuccessState;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.VerificationState.ERROR;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.VerificationState.INVALID;
-import ch.admin.bag.covidcertificate.sdk.core.models.state.VerificationState.SUCCESS;
 
 public class VerificationResponse {
+    // This class replaces the SUCCESS class from the SDK since Jackson can't deal with abstract
+    // classes well
+    public static class WalletSuccessStateWrapper {
+        // This field could be either this or VerifierSuccessState in the SUCCESS class, but we need
+        // it to always be WalletSuccessState
+        private WalletSuccessState successState;
+        private boolean isLightCertificate;
 
-    private SUCCESS successState;
+        public WalletSuccessState getSuccessState() {
+            return successState;
+        }
+
+        public void setSuccessState(WalletSuccessState successState) {
+            this.successState = successState;
+        }
+
+        public boolean isLightCertificate() {
+            return isLightCertificate;
+        }
+
+        public void setLightCertificate(boolean lightCertificate) {
+            isLightCertificate = lightCertificate;
+        }
+    }
+
+    private WalletSuccessStateWrapper successState;
     private ERROR errorState;
     private INVALID invalidState;
     private CertificateHolder hcertDecoded;
 
-    public SUCCESS getSuccessState() {
+    public WalletSuccessStateWrapper getSuccessState() {
         return successState;
     }
 
-    public void setSuccessState(SUCCESS successState) {
+    public void setSuccessState(WalletSuccessStateWrapper successState) {
         this.successState = successState;
     }
 
