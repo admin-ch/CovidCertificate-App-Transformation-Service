@@ -118,7 +118,7 @@ public class TransformationController {
         TransformationType transformationType = TransformationType.LIGHT_CERT;
         rateLimitService.checkRateLimit(uvci, transformationType);
 
-        final var validityRange = validationResponse.getSuccessState().getValidityRange();
+        final var validityRange = (validationResponse.getSuccessState().getSuccessState()).getValidityRange();
         CertLightResponse certLight = certLightClient.getCertLight(euCert, validityRange);
         rateLimitService.logTransformation(uvci, transformationType);
 

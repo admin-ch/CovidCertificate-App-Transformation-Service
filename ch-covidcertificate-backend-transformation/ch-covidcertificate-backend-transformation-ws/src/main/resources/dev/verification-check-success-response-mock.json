@@ -1,22 +1,35 @@
 {
   "successState": {
-    "isLightCertificate": false,
-    "validityRange": {
-      "validFrom": [
-        2021,
-        3,
-        16,
-        0,
-        0
-      ],
-      "validUntil": [
-        2021,
-        9,
-        1,
-        0,
-        0
+    "successState": {
+      "isValidOnlyInSwitzerland": false,
+      "validityRange": {
+        "validFrom": [
+          2021,
+          12,
+          14,
+          0,
+          0
+        ],
+        "validUntil": [
+          2022,
+          12,
+          13,
+          0,
+          0
+        ]
+      },
+      "modeValidity": [
+        {
+          "mode": "THREE_G",
+          "modeValidityState": "SUCCESS"
+        },
+        {
+          "mode": "TWO_G",
+          "modeValidityState": "SUCCESS"
+        }
       ]
-    }
+    },
+    "isLightCertificate": false
   },
   "errorState": null,
   "invalidState": null,
@@ -24,37 +37,40 @@
     "certificate": {
       "ver": "1.3.0",
       "nam": {
-        "familyName": "Testerin",
-        "standardizedFamilyName": "TESTERIN",
-        "givenName": "Ursula",
-        "standardizedGivenName": "URSULA"
+        "familyName": "aoeuoeu",
+        "standardizedFamilyName": "AOEUOEU",
+        "givenName": "ueua",
+        "standardizedGivenName": "UEUA"
       },
-      "dob": "2000-01-01",
-      "v": null,
-      "t": null,
-      "r": [
+      "dob": "2003-02-04",
+      "v": [
         {
           "tg": "840539006",
-          "fr": "2021-03-06",
+          "vp": "1119349007",
+          "mp": "EU/1/20/1528",
+          "ma": "ORG-100030215",
+          "dn": 2,
+          "sd": 2,
+          "dt": "2021-12-14",
           "co": "CH",
           "is": "Bundesamt für Gesundheit (BAG)",
-          "df": "2021-03-16",
-          "du": "2021-09-01",
-          "ci": "urn:uvci:01:CH:3467CDB9DDCBAEC6231E8ABB"
+          "ci": "urn:uvci:01:CH:9357A8363304A89A00B676C4"
         }
       ],
+      "t": null,
+      "r": null,
       "personName": {
-        "familyName": "Testerin",
-        "standardizedFamilyName": "TESTERIN",
-        "givenName": "Ursula",
-        "standardizedGivenName": "URSULA"
+        "familyName": "aoeuoeu",
+        "standardizedFamilyName": "AOEUOEU",
+        "givenName": "ueua",
+        "standardizedGivenName": "UEUA"
       },
-      "formattedDateOfBirth": "01.01.2000"
+      "formattedDateOfBirth": "04.02.2003"
     },
-    "qrCodeData": "HC1:NCFOXNYTSFDHJI8-.O0:A%1W RI%.BI06 JV1WGDNPZQG8G5HMROBTVGAI0AP6KPF6R:5SVBFAB4DNN95ZTM9:N7755QLQQ5%YQ+GO:SP$XO7IRJ+P*NR6NP40P/NRWNQ1ORQHP1IQDSOHJPN95U/3P+9:H9P1J4HGZJK HGK3M6DB+G9BYI ILN9C*XI5Q09L67Q98T5%BIMI5DN9XW5O PICA$O7T6LEJOA+MY55EII-EBAFKA.SC3M5VA81K0ECM8CXVDC8C 1J5OILR0R3E710-E1:PI/E2$4JY/KN$CLXKU7JI$2C4T /KS-KSZ269JTP46AL**I1ZG6$0+BN-IF9Y4KCT.ZKBY0P8HJ47V7J$%25I3KC3X83PF6VCEEALDDPC31/H2XO4Q0QPCG-D7N+6RU2B0300E2JAU47PGCI$V*6M00CN3W75EH0S1GJ$FIENE7G801F3DR:YRL:G5VTSOR07I. TBOUGZV6BDW.7FUVRGOA$GPEFTFW*ABXV5U0WUOC%+G8TKVXGK2PH*2A3Q0APDQ0Z8U04G3X5V%GP6M2*TN0V6YV%%HF1V44RD5QPVUR*VDXN9OJG0S6ZP7V21AD9OV2:U.5G::A*1B*11PPFL%49ZMBBB+UM:3OIFFOP8T.U2RAP:1HNI60L$WJA43NNLFRB+-U5*M0ML4MJ*AT.3SU87G%EMDUF$VFMI3 8T3M*GE:DNTP7QRG91S%NM8M1FPHEK7:SO-KSDIG7NVB+CM.E*EJ 17ZO5VHJXRLVD6PFLKIESYSMU4OY0.SR",
-    "expirationTime": 1688641767,
-    "issuedAt": 1625569767,
+    "qrCodeData": "HC1:NCFJ60EG0/3WUWGSLKH47GO0SK7KFDCBOECI9CK+500XK0JCV497F3QNFY5B3F30EN+6BY50.FK6ZK7:EDOLOPCO8F6%E3.DA%EOPC1G72A6YM8AG7EL6F:6W47F%69L6CR6%47%A8O46J%6V%60S6UPC0JCZ69FVCPD0LVC6JD846Y96*964W50S6+EDG8F3I80/D6$CBECSUER:C2$NS346$C2%E9VC- CSUE145GB8JA5B$D% D3IA4W5646946846.96.JCP9EJY8L/5M/5546.96VF63KC.SC4KCD3DX47B46IL6646H*6Z/E5JD%96IA74R6646407GVC*JCNF69463W5KF6A46TPCBEC7ZKW.C53DW3E3%E8$C JC0/D%$EY$ELPCG/DI2D/0AEZAJY8MPCG/DZUCJY8:B8O/EZKEZ967L6256V50WW6OS4Z$UEKG:.I5ANEU4C D%$CIK9U*N-F2 *40K94AJ448UZ4S4W6 P OFMH1W4M6N1MZI550*L7QHFW0C$69DXMMK1A0A.L8V48*G1:O3 A9Z33NXTJC6E5L% HXV6UBG0EU-+2:F9QCEQ3QM5LLVQC13WJ0*MQYVA 6W.+GHOFDHOQU3L9HAZR+IK5 CR9KZ9N%XERM7*Z28NG5TA8F3EQG% 7V72QJ1$I1.S3J2IZ8O3*T5DPG9NSII V8KT0YT1Z-7X%B2112BU7LAH3E.33XX3/W5D-L/%5+Q8+6L51U.2UY48OXQ LO+P9+TTPXO2PNF/II4QPXJ-E19PJP:R.4L-.3EJK7SKTU34 CSNH.CIXOBRBABOUCDUFOVMFWJUQ",
+    "expirationTime": 1702546520,
+    "issuedAt": 1639474520,
     "issuer": "CH",
-    "certType": "RECOVERY"
+    "certType": "VACCINATION"
   }
 }
