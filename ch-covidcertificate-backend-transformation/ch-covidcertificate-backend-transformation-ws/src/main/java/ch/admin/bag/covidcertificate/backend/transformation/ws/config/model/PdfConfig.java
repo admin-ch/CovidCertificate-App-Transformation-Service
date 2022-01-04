@@ -10,6 +10,7 @@ public class PdfConfig {
     private String recoveryEndpoint;
     private String vaccinationEndpoint;
     private String antibodyEndpoint;
+    private String exemptionEndpoint;
 
     private String vaccinationTouristEndpoint;
 
@@ -59,4 +60,11 @@ public class PdfConfig {
         this.vaccinationTouristEndpoint = vaccinationTouristEndpoint;
     }
 
+    public String getExemptionEndpoint() {
+        return exemptionEndpoint;
+    }
+
+    public void setExemptionEndpoint(String exemptionEndpoint) {
+        this.exemptionEndpoint = exemptionEndpoint;
+    }
 }
