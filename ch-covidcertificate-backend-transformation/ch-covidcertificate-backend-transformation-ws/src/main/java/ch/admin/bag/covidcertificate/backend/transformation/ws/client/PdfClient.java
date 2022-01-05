@@ -30,6 +30,12 @@ public class PdfClient {
                     .getTt()
                     .equals(TestTypes.TEST_TYPE_ANTIBODY)) {
                 endpoint = pdfConfig.getAntibodyEndpoint();
+            } else if(((DecodedTCert) decodedCert)
+                    .getT()
+                    .get(0)
+                    .getTt()
+                    .equals(TestTypes.TEST_TYPE_EXEMPTION)){
+                endpoint = pdfConfig.getExemptionEndpoint();
             } else {
                 endpoint = pdfConfig.getTestEndpoint();
             }
