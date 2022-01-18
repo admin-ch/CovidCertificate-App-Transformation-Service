@@ -11,7 +11,7 @@ public class PdfConfig {
     private String vaccinationEndpoint;
     private String antibodyEndpoint;
     private String exemptionEndpoint;
-
+    private String antigenRecoveryEndpoint;
     private String vaccinationTouristEndpoint;
 
     public List<String> getChIssuers() {
@@ -66,5 +66,13 @@ public class PdfConfig {
 
     public void setExemptionEndpoint(String exemptionEndpoint) {
         this.exemptionEndpoint = exemptionEndpoint;
+    }
+
+    public String getAntigenRecoveryEndpoint() {
+        return antigenRecoveryEndpoint;
+    }
+
+    public void setAntigenRecoveryEndpoint(String antigenRecoveryEndpoint) {
+        this.antigenRecoveryEndpoint = antigenRecoveryEndpoint;
     }
 }

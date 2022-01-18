@@ -1,5 +1,6 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.client;
 
+import ch.admin.bag.covidcertificate.backend.transformation.model.TestResults;
 import ch.admin.bag.covidcertificate.backend.transformation.model.TestTypes;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VaccinationCertificateTypes;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.BitPdfPayload;
@@ -30,7 +31,18 @@ public class PdfClient {
                     .getTt()
                     .equals(TestTypes.TEST_TYPE_ANTIBODY)) {
                 endpoint = pdfConfig.getAntibodyEndpoint();
-            } else if(((DecodedTCert) decodedCert)
+            }else if(((DecodedTCert) decodedCert)
+                    .getT()
+                    .get(0)
+                    .getTt()
+                    .equals(TestTypes.TEST_TYPE_RAT) &&
+                    ((DecodedTCert) decodedCert)
+                            .getT()
+                            .get(0)
+                            .getTr()
+                            .equals(TestResults.TEST_RESULT_POSITIVE)){
+                endpoint = pdfConfig.getAntigenRecoveryEndpoint();
+            }else if(((DecodedTCert) decodedCert)
                     .getT()
                     .get(0)
                     .getTt()
