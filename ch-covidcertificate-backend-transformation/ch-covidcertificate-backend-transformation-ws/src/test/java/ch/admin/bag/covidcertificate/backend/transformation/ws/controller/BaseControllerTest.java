@@ -29,7 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @ExtendWith(SpringExtension.class)
-@ActiveProfiles({"test", "security"})
+@ActiveProfiles({"test", "security", "actuator-security"})
 @AutoConfigureMockMvc
 @TestPropertySource("classpath:application-test.properties")
 @ContextConfiguration(initializers = BaseControllerTest.DockerPostgresDataSourceInitializer.class)
