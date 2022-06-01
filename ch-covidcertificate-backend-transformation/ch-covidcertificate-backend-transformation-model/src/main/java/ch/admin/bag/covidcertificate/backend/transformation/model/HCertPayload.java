@@ -11,6 +11,12 @@ public class HCertPayload {
     @NotNull
     private String hcert;
 
+    public HCertPayload() {}
+
+    public HCertPayload(String hcert) {
+        this.hcert = hcert;
+    }
+
     public String getHcert() {
         return hcert;
     }

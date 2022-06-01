@@ -15,6 +15,7 @@ import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLi
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.BitClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.PdfClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.RenewalClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.deserializer.CustomCovidCertificateDeserializer;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.config.model.PdfConfig;
@@ -78,6 +79,7 @@ public abstract class WsBaseConfig {
             RateLimitService rateLimitService,
             PdfClient pdfClient,
             PdfConfig pdfConfig,
+            RenewalClient renewalClient,
             boolean debug) {
         return new TransformationController(
                 verificationCheckClient,
@@ -85,7 +87,13 @@ public abstract class WsBaseConfig {
                 rateLimitService,
                 pdfClient,
                 pdfConfig,
+                renewalClient,
                 debug);
+    }
+
+    @Bean
+    public RenewalClient renewalClient(BitClient bitClient) {
+        return new RenewalClient(bitClient);
     }
 
     @Bean
