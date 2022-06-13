@@ -1,7 +1,9 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.client;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
-import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.renewal.BitCertRenewalPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.renewal.CertRenewalException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class RenewalClient {
     private final BitClient bitClient;
@@ -10,7 +12,8 @@ public class RenewalClient {
         this.bitClient = bitClient;
     }
 
-    public HCertPayload getRenewedCert(DccCert euCert) {
-        return bitClient.getRenewedCert();
+    public HCertPayload getRenewedCert(BitCertRenewalPayload payload)
+            throws JsonProcessingException, CertRenewalException {
+        return bitClient.getRenewedCert(payload);
     }
 }

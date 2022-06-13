@@ -41,6 +41,9 @@ public class WsCloudConfig extends WsBaseConfig {
     @Value("${transform.light.endpoint}")
     private String lightCertificateEndpoint;
 
+    @Value("${transform.renew.endpoint}")
+    private String certRenewalEndpoint;
+
     @Value("${ws.jwt.client-id:default-client}")
     private String clientId;
 
@@ -76,6 +79,10 @@ public class WsCloudConfig extends WsBaseConfig {
     public BitClient bitClient(
             ClientRegistrationRepository clientRegistration, ObjectMapper objectMapper) {
         return new BitClientOauthImpl(
-                clientId, clientRegistration, lightCertificateEndpoint, objectMapper);
+                clientId,
+                clientRegistration,
+                lightCertificateEndpoint,
+                objectMapper,
+                certRenewalEndpoint);
     }
 }

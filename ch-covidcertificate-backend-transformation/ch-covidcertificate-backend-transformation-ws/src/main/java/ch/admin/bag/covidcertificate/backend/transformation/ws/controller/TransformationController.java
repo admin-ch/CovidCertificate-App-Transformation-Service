@@ -10,12 +10,15 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
-import ch.admin.bag.covidcertificate.backend.transformation.model.lightcert.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.TransformationType;
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.DecodedVCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.lightcert.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.BitPdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.Language;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.model.renewal.BitCertRenewalPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.renewal.CertRenewalException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.PdfClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.RenewalClient;
@@ -178,25 +181,26 @@ public class TransformationController {
     public @ResponseBody ResponseEntity<HCertPayload> getRenewedCert(
             @Valid @RequestBody HCertPayload hCertPayload)
             throws ValidationException, ResponseParseError, NoSuchAlgorithmException,
-                    RateLimitExceededException, EmptyCertificateException,
-                    MultipleEntriesException {
+                    RateLimitExceededException, EmptyCertificateException, MultipleEntriesException,
+                    JsonProcessingException, CertRenewalException {
 
         // Decode and verify hcert
-        //        final var validationResponse = verificationCheckClient.validate(hCertPayload);
-        //        final var certificateHolder = validationResponse.getHcertDecoded();
-        //        if (certificateHolder == null ||
-        // !chIssuers.contains(certificateHolder.getIssuer())) {
-        //            return ResponseEntity.badRequest().build();
-        //        }
-        //
-        //        var euCert = (DccCert) certificateHolder.getCertificate();
-        //
-        //        final String uvci = DccHelper.getUvci(euCert);
-        //        TransformationType transformationType = TransformationType.RENEW;
-        //        rateLimitService.checkRateLimit(uvci, transformationType);
-        //        final HCertPayload renewedCert = renewalClient.getRenewedCert(euCert);
-        final HCertPayload renewedCert = renewalClient.getRenewedCert(null);
-        //        rateLimitService.logTransformation(uvci, transformationType);
+        final var validationResponse = verificationCheckClient.validate(hCertPayload);
+        final var certificateHolder = validationResponse.getHcertDecoded();
+        if (certificateHolder == null || !chIssuers.contains(certificateHolder.getIssuer())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        var euCert = (DccCert) certificateHolder.getCertificate();
+
+        final String uvci = DccHelper.getUvci(euCert);
+        TransformationType transformationType = TransformationType.RENEW;
+        rateLimitService.checkRateLimit(uvci, transformationType);
+        final HCertPayload renewedCert =
+                renewalClient.getRenewedCert(
+                        new BitCertRenewalPayload(
+                                (DecodedVCert) DccHelper.mapToDecodedCert(euCert)));
+        rateLimitService.logTransformation(uvci, transformationType);
 
         return ResponseEntity.ok(renewedCert);
     }
@@ -241,5 +245,12 @@ public class TransformationController {
     public ResponseEntity<Void> rateLimitExceeded(RateLimitExceededException e) {
         logger.info("Rate limit exceeded for uvci-hash: {}", e.getUvciHash());
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+    }
+
+    @ExceptionHandler(CertRenewalException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> certRenewalFailed(CertRenewalException e) {
+        logger.info("Cert renewal failed. {} (errorCode={})", e.getMessage(), e.getErrorCode());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 }
