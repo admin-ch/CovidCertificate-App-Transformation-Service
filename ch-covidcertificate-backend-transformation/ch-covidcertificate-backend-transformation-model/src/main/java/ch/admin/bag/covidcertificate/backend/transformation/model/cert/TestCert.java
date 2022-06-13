@@ -1,4 +1,4 @@
-package ch.admin.bag.covidcertificate.backend.transformation.model.pdf;
+package ch.admin.bag.covidcertificate.backend.transformation.model.cert;
 
 /**
  * This is a java implementation of the `test_entry` json spec found at

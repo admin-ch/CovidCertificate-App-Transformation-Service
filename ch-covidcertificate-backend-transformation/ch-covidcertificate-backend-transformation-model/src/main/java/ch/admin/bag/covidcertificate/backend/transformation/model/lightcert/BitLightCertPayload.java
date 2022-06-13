@@ -8,9 +8,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-package ch.admin.bag.covidcertificate.backend.transformation.model;
+package ch.admin.bag.covidcertificate.backend.transformation.model.lightcert;
 
-public class TransformPayload {
+import ch.admin.bag.covidcertificate.backend.transformation.model.Person;
+
+public class BitLightCertPayload {
     private Person nam;
     private String dob;
     private Long exp;

@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.model.lightcert.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.TransformationType;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;

@@ -1,13 +1,13 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.util;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.Person;
-import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedCert;
-import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedRCert;
-import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedTCert;
-import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.DecodedVCert;
-import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.RecoveryCert;
-import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.TestCert;
-import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.VaccinationCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.DecodedCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.DecodedRCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.DecodedTCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.DecodedVCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.RecoveryCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.TestCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.VaccinationCert;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.MultipleEntriesException;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;

@@ -1,5 +1,6 @@
 package ch.admin.bag.covidcertificate.backend.transformation.model.pdf;
 
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.DecodedCert;
 import java.time.Instant;
 
 public class BitPdfPayload {

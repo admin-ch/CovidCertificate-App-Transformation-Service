@@ -10,7 +10,7 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
-import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.model.lightcert.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.TransformationType;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.BitPdfPayload;
