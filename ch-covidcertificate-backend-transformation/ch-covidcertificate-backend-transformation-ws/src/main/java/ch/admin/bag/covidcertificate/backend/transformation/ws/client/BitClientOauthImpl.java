@@ -117,7 +117,7 @@ public class BitClientOauthImpl implements BitClient {
                                 e.getResponseBodyAsString(), BitCertRenewalErrorResponse.class);
                 throw new CertRenewalException(errorResponse);
             } catch (JsonProcessingException ex) {
-                logger.warn("couldn't parse error response", e.getResponseBodyAsString());
+                logger.warn("couldn't parse error response: {}", e.getResponseBodyAsString());
                 throw new CertRenewalException();
             }
         }
