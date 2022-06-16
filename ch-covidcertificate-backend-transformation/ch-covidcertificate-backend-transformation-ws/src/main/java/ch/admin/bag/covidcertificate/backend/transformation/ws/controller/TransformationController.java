@@ -185,7 +185,7 @@ public class TransformationController {
                     JsonProcessingException, CertRenewalException {
 
         // Decode and verify hcert
-        final var validationResponse = verificationCheckClient.validate(hCertPayload);
+        final var validationResponse = verificationCheckClient.validateCertForRenewal(hCertPayload);
         final var certificateHolder = validationResponse.getHcertDecoded();
         if (certificateHolder == null || !chIssuers.contains(certificateHolder.getIssuer())) {
             return ResponseEntity.badRequest().build();
