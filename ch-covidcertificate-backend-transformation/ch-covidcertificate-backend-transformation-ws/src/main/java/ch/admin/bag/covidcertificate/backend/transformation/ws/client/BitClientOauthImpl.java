@@ -115,10 +115,14 @@ public class BitClientOauthImpl implements BitClient {
                 final BitCertRenewalErrorResponse errorResponse =
                         objectMapper.readValue(
                                 e.getResponseBodyAsString(), BitCertRenewalErrorResponse.class);
-                throw new CertRenewalException(errorResponse);
+                if (errorResponse.getErrorMessage() == null) {
+                    throw new CertRenewalException(e.getResponseBodyAsString());
+                } else {
+                    throw new CertRenewalException(errorResponse);
+                }
             } catch (JsonProcessingException ex) {
                 logger.warn("couldn't parse error response: {}", e.getResponseBodyAsString());
-                throw new CertRenewalException();
+                throw new CertRenewalException(e.getResponseBodyAsString());
             }
         }
     }

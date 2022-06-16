@@ -5,10 +5,12 @@ public class CertRenewalException extends Exception {
 
     private final Integer errorCode;
     private final String httpStatus;
+    private String rawErrorResponse;
 
-    public CertRenewalException() {
+    public CertRenewalException(String errorResponse) {
         this.errorCode = null;
         this.httpStatus = null;
+        this.rawErrorResponse = errorResponse;
     }
 
     public CertRenewalException(BitCertRenewalErrorResponse errorResponse) {
@@ -23,5 +25,19 @@ public class CertRenewalException extends Exception {
 
     public String getHttpStatus() {
         return httpStatus;
+    }
+
+    @Override
+    public String toString() {
+        return "CertRenewalException{"
+                + "errorCode="
+                + errorCode
+                + ", httpStatus='"
+                + httpStatus
+                + '\''
+                + ", rawErrorResponse='"
+                + rawErrorResponse
+                + '\''
+                + '}';
     }
 }
