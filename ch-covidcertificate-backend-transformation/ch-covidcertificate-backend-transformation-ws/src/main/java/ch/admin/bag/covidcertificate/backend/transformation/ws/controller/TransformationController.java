@@ -250,7 +250,7 @@ public class TransformationController {
     @ExceptionHandler(CertRenewalException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Object> certRenewalFailed(CertRenewalException e) {
-        logger.info("Cert renewal failed. {} (errorCode={})", e.getMessage(), e.getErrorCode());
+        logger.info("Cert renewal failed.", e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 }
