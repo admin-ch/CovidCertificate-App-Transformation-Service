@@ -59,6 +59,9 @@ public abstract class WsBaseConfig {
     @Value("${verification.check.endpoint}")
     private String verificationCheckEndpoint;
 
+    @Value("${verification.check.renewal.endpoint}")
+    private String verificationCheckRenewalEndpoint;
+
     @Value("${verification.zone-id:default}")
     private String namedZoneId;
 
@@ -105,7 +108,11 @@ public abstract class WsBaseConfig {
     public VerificationCheckClient verificationCheckClient(
             RestTemplate rt, ObjectMapper objectMapper) {
         return new VerificationCheckClient(
-                verificationCheckBaseUrl, verificationCheckEndpoint, rt, objectMapper);
+                verificationCheckBaseUrl,
+                verificationCheckEndpoint,
+                verificationCheckRenewalEndpoint,
+                rt,
+                objectMapper);
     }
 
     @Bean

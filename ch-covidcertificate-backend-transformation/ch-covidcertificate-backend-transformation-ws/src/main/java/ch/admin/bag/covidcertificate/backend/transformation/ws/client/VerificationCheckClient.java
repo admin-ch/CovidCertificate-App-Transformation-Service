@@ -24,15 +24,35 @@ public class VerificationCheckClient {
 
     private final String baseurl;
     private final String verifyEndpoint;
+    private final String verifyRenewalEndpoint;
     private final RestTemplate rt;
     private final ObjectMapper objectMapper;
 
     public VerificationCheckClient(
-            String baseurl, String verifyEndpoint, RestTemplate rt, ObjectMapper objectMapper) {
+            String baseurl,
+            String verifyEndpoint,
+            String verificationCheckRenewalEndpoint,
+            RestTemplate rt,
+            ObjectMapper objectMapper) {
         this.baseurl = baseurl;
         this.verifyEndpoint = verifyEndpoint;
+        this.verifyRenewalEndpoint = verificationCheckRenewalEndpoint;
         this.rt = rt;
         this.objectMapper = objectMapper;
+    }
+
+    /**
+     * Decode and verify a client HCert for renewal
+     *
+     * @param hCertPayload payload as sent with the original request
+     * @return the decoded certificate if it can be decoded and is valid for renewal, null if it
+     *     can't be decoded
+     * @throws ValidationException certificate isn't valid for renewal
+     * @throws ResponseParseError response from validation endpoint couldn't be parsed
+     */
+    public VerificationResponse validateCertForRenewal(HCertPayload hCertPayload)
+            throws ValidationException, ResponseParseError {
+        return internalValidate(hCertPayload, VerificationType.RENEWAL);
     }
 
     /**
@@ -46,7 +66,7 @@ public class VerificationCheckClient {
      */
     public VerificationResponse validate(HCertPayload hCertPayload)
             throws ValidationException, ResponseParseError {
-        return internalValidate(hCertPayload, false);
+        return internalValidate(hCertPayload, VerificationType.FULL);
     }
 
     /**
@@ -60,16 +80,18 @@ public class VerificationCheckClient {
      */
     public VerificationResponse validateSignature(HCertPayload hCertPayload)
             throws ValidationException, ResponseParseError {
-        return internalValidate(hCertPayload, true);
+        return internalValidate(hCertPayload, VerificationType.SIGNATURE_ONLY);
     }
 
-    private VerificationResponse internalValidate(HCertPayload hCertPayload, boolean signatureOnly)
+    private VerificationResponse internalValidate(
+            HCertPayload hCertPayload, VerificationType verificationType)
             throws ValidationException, ResponseParseError {
-        final var verificationResponse = verify(hCertPayload, signatureOnly);
+        final var verificationResponse = verify(hCertPayload, verificationType);
         if (verificationResponse == null) {
             throw new ResponseParseError(null);
         } else if (verificationResponse.isValid()
-                || (signatureOnly && verificationResponse.signatureIsValid())) {
+                || (VerificationType.SIGNATURE_ONLY.equals(verificationType)
+                        && verificationResponse.signatureIsValid())) {
             return verificationResponse;
         } else {
             throw new ValidationException(
@@ -79,15 +101,19 @@ public class VerificationCheckClient {
         }
     }
 
-    private VerificationResponse verify(HCertPayload hCertPayload, boolean signatureOnly)
+    private VerificationResponse verify(
+            HCertPayload hCertPayload, VerificationType verificationType)
             throws ResponseParseError {
         try {
-            final var uri =
-                    UriComponentsBuilder.fromHttpUrl(baseurl + verifyEndpoint).build().toUri();
+            final String endpoint =
+                    VerificationType.RENEWAL.equals(verificationType)
+                            ? verifyRenewalEndpoint
+                            : verifyEndpoint;
+            final var uri = UriComponentsBuilder.fromHttpUrl(baseurl + endpoint).build().toUri();
             final var request =
                     RequestEntity.post(uri).headers(createRequestHeaders()).body(hCertPayload);
             final var response = rt.exchange(request, String.class);
-            return parseResponse(response, signatureOnly);
+            return parseResponse(response, verificationType);
         } catch (JsonProcessingException e) {
             logger.error("Couldn't verify certificate", e);
         } catch (HttpStatusCodeException e) {
@@ -103,14 +129,15 @@ public class VerificationCheckClient {
     }
 
     private VerificationResponse parseResponse(
-            ResponseEntity<String> response, boolean signatureOnly)
+            ResponseEntity<String> response, VerificationType verificationType)
             throws ResponseParseError, JsonProcessingException {
         try {
             return objectMapper.readValue(response.getBody(), VerificationResponse.class);
         } catch (JsonMappingException ex) {
             // json deserialization fails when invalid state or error state is not null
             JsonNode node = objectMapper.readTree(response.getBody());
-            if (signatureOnly && signatureIsValid(node)) {
+            if (VerificationType.SIGNATURE_ONLY.equals(verificationType)
+                    && signatureIsValid(node)) {
                 VerificationResponse verificationResponse = new VerificationResponse();
                 verificationResponse.setHcertDecoded(
                         objectMapper.treeToValue(
