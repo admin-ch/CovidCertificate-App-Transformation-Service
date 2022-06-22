@@ -1,4 +1,4 @@
-package ch.admin.bag.covidcertificate.backend.transformation.model.pdf;
+package ch.admin.bag.covidcertificate.backend.transformation.model.cert;
 
 import ch.admin.bag.covidcertificate.backend.transformation.model.Person;
 import java.util.List;

@@ -21,10 +21,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.TransformationType;
 import ch.admin.bag.covidcertificate.backend.transformation.model.VerificationResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.model.lightcert.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckNationalRulesState;
 import ch.admin.bag.covidcertificate.sdk.core.models.state.CheckRevocationState;
@@ -153,8 +153,9 @@ class TransformationControllerTest extends BaseControllerTest {
                         CheckSignatureState.SUCCESS.INSTANCE,
                         CheckRevocationState.SUCCESS.INSTANCE,
                         new CheckNationalRulesState.INVALID(
-                                NationalRulesError.NO_VALID_PRODUCT, false,"id_0"),
-                        new ValidityRange(now.minusDays(2), now.plusDays(2))));
+                                NationalRulesError.NO_VALID_PRODUCT, false, "id_0", ""),
+                        new ValidityRange(now.minusDays(2), now.plusDays(2)),
+                        ""));
 
         setupVerificationCheckMockServer(
                 payloadString, objectMapper.writeValueAsString(verificationResponse));
@@ -170,7 +171,8 @@ class TransformationControllerTest extends BaseControllerTest {
 
     private String getHcertPayloadString() throws JsonProcessingException {
         var hCertPayload = new HCertPayload();
-        hCertPayload.setHcert("HC1:NCFB60MG0/3WUWGSLKH47GO0SK7KFDCBOECI9CKW500XK0JCV498F3: BQE64F3+JJ+NMY50.FK6ZK7:EDOLOPCO8F6%E3.DA%EOPC1G72A6YM83G7DB8ES8/G8.96Y47ES8.96ZA7$962X6-R8SG6UPC0JCZ69FVCBJ0LVC6JD846KF6C463W5EM6+EDG8F3I80/D6$CBECSUER:C2$NS346$C2%E9VC- CSUE145GB8JA5B$D% D3IA4W5646946846.96.JCP9EJY8L/5M/5546.96VF63KC/SC4KCD3DX47B46IL6646H*6Z/E5JD%96IA74R6646407GVC*JC1A6OA73W5Y96B46TPCBEC7ZKW.C2VCDECY CI3DGPC8$CLPCG/DFUCOB8XY8I3D5WEEB8YZAO/EZKEZ967L6256V50MAOCTIEHMJ*E62F8$51G4+KEXLP1ZTO1CS538*5DA0R0QW/3ZHD3IO4OKGBN+WQEBI2+KQ9SM+NRGTV KQ72F%OYWPSOL-0W2.96%25HRG/B16KP:GS%JR$P+24U9MJ4NRE0K89SB9*UB03E.S3P 6QM2/ODSS1WZ73S3LA8W*5.4BI6OLYU53I+*7  HDYKXG6:/7X15F9A.4J2RB0Z1GTLYBS96HSZH%0D5QCU7I+:T8JVUNMZ:7.S6-XOG1LVQD5004KGYHIYMM-$IFKD+KUSEA/YBI04//7:0GYRS7 J51FT.5D2GKYRD.Q$QSJAG.YVQFNLF58GU-M2R6KB5KG/L7JEVY1TRDC-P8YH:R1U425JF0ENJ10PS24EWKPHXAFFZQ");
+        hCertPayload.setHcert(
+                "HC1:NCFB60MG0/3WUWGSLKH47GO0SK7KFDCBOECI9CKW500XK0JCV498F3: BQE64F3+JJ+NMY50.FK6ZK7:EDOLOPCO8F6%E3.DA%EOPC1G72A6YM83G7DB8ES8/G8.96Y47ES8.96ZA7$962X6-R8SG6UPC0JCZ69FVCBJ0LVC6JD846KF6C463W5EM6+EDG8F3I80/D6$CBECSUER:C2$NS346$C2%E9VC- CSUE145GB8JA5B$D% D3IA4W5646946846.96.JCP9EJY8L/5M/5546.96VF63KC/SC4KCD3DX47B46IL6646H*6Z/E5JD%96IA74R6646407GVC*JC1A6OA73W5Y96B46TPCBEC7ZKW.C2VCDECY CI3DGPC8$CLPCG/DFUCOB8XY8I3D5WEEB8YZAO/EZKEZ967L6256V50MAOCTIEHMJ*E62F8$51G4+KEXLP1ZTO1CS538*5DA0R0QW/3ZHD3IO4OKGBN+WQEBI2+KQ9SM+NRGTV KQ72F%OYWPSOL-0W2.96%25HRG/B16KP:GS%JR$P+24U9MJ4NRE0K89SB9*UB03E.S3P 6QM2/ODSS1WZ73S3LA8W*5.4BI6OLYU53I+*7  HDYKXG6:/7X15F9A.4J2RB0Z1GTLYBS96HSZH%0D5QCU7I+:T8JVUNMZ:7.S6-XOG1LVQD5004KGYHIYMM-$IFKD+KUSEA/YBI04//7:0GYRS7 J51FT.5D2GKYRD.Q$QSJAG.YVQFNLF58GU-M2R6KB5KG/L7JEVY1TRDC-P8YH:R1U425JF0ENJ10PS24EWKPHXAFFZQ");
         final String payloadString = objectMapper.writeValueAsString(hCertPayload);
         return payloadString;
     }

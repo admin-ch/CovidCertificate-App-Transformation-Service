@@ -1,7 +1,7 @@
 package ch.admin.bag.covidcertificate.backend.transformation.ws.client;
 
-import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightResponse;
-import ch.admin.bag.covidcertificate.backend.transformation.model.TransformPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.lightcert.CertLightResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.model.lightcert.BitLightCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.util.DccHelper;
 import ch.admin.bag.covidcertificate.sdk.core.models.healthcert.eu.DccCert;
 import ch.admin.bag.covidcertificate.sdk.core.verifier.nationalrules.ValidityRange;
@@ -27,7 +27,7 @@ public class CertLightClient {
                 validityRange.getValidUntil().atZone(verificationZoneId).toInstant().toEpochMilli();
         var nowPlus48 = Instant.now().plus(Duration.ofHours(48)).toEpochMilli();
 
-        var payload = new TransformPayload();
+        var payload = new BitLightCertPayload();
         payload.setNam(DccHelper.getPerson(euCert));
         payload.setDob(euCert.getDateOfBirth());
         payload.setExp(Math.min(expiry, nowPlus48));

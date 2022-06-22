@@ -1,4 +1,4 @@
-package ch.admin.bag.covidcertificate.backend.transformation.model;
+package ch.admin.bag.covidcertificate.backend.transformation.model.lightcert;
 
 import ch.ubique.openapi.docannotations.Documentation;
 import com.fasterxml.jackson.annotation.JsonAlias;

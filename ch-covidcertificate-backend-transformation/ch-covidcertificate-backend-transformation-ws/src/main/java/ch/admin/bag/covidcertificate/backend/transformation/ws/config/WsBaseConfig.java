@@ -15,6 +15,7 @@ import ch.admin.bag.covidcertificate.backend.transformation.data.impl.JdbcRateLi
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.BitClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.PdfClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.RenewalClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.deserializer.CustomCovidCertificateDeserializer;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.config.model.PdfConfig;
@@ -58,6 +59,9 @@ public abstract class WsBaseConfig {
     @Value("${verification.check.endpoint}")
     private String verificationCheckEndpoint;
 
+    @Value("${verification.check.renewal.endpoint}")
+    private String verificationCheckRenewalEndpoint;
+
     @Value("${verification.zone-id:default}")
     private String namedZoneId;
 
@@ -78,6 +82,7 @@ public abstract class WsBaseConfig {
             RateLimitService rateLimitService,
             PdfClient pdfClient,
             PdfConfig pdfConfig,
+            RenewalClient renewalClient,
             boolean debug) {
         return new TransformationController(
                 verificationCheckClient,
@@ -85,7 +90,13 @@ public abstract class WsBaseConfig {
                 rateLimitService,
                 pdfClient,
                 pdfConfig,
+                renewalClient,
                 debug);
+    }
+
+    @Bean
+    public RenewalClient renewalClient(BitClient bitClient) {
+        return new RenewalClient(bitClient);
     }
 
     @Bean
@@ -97,7 +108,11 @@ public abstract class WsBaseConfig {
     public VerificationCheckClient verificationCheckClient(
             RestTemplate rt, ObjectMapper objectMapper) {
         return new VerificationCheckClient(
-                verificationCheckBaseUrl, verificationCheckEndpoint, rt, objectMapper);
+                verificationCheckBaseUrl,
+                verificationCheckEndpoint,
+                verificationCheckRenewalEndpoint,
+                rt,
+                objectMapper);
     }
 
     @Bean

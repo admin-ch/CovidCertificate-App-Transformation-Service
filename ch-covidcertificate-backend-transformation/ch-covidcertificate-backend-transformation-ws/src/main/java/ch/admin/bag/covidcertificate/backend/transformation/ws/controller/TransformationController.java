@@ -10,14 +10,18 @@
 
 package ch.admin.bag.covidcertificate.backend.transformation.ws.controller;
 
-import ch.admin.bag.covidcertificate.backend.transformation.model.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.HCertPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.TransformationType;
+import ch.admin.bag.covidcertificate.backend.transformation.model.cert.DecodedVCert;
+import ch.admin.bag.covidcertificate.backend.transformation.model.lightcert.CertLightResponse;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.BitPdfPayload;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.Language;
 import ch.admin.bag.covidcertificate.backend.transformation.model.pdf.PdfResponse;
+import ch.admin.bag.covidcertificate.backend.transformation.model.renewal.BitCertRenewalPayload;
+import ch.admin.bag.covidcertificate.backend.transformation.model.renewal.CertRenewalException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.CertLightClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.PdfClient;
+import ch.admin.bag.covidcertificate.backend.transformation.ws.client.RenewalClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.VerificationCheckClient;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.CertificateFormatException;
 import ch.admin.bag.covidcertificate.backend.transformation.ws.client.exceptions.EmptyCertificateException;
@@ -61,6 +65,7 @@ public class TransformationController {
     private final CertLightClient certLightClient;
     private final RateLimitService rateLimitService;
     private final PdfClient pdfClient;
+    private final RenewalClient renewalClient;
     private final List<String> chIssuers;
     private final boolean debug;
 
@@ -70,11 +75,13 @@ public class TransformationController {
             RateLimitService rateLimitService,
             PdfClient pdfClient,
             PdfConfig pdfConfig,
+            RenewalClient renewalClient,
             boolean debug) {
         this.verificationCheckClient = verificationCheckClient;
         this.certLightClient = certLightClient;
         this.rateLimitService = rateLimitService;
         this.pdfClient = pdfClient;
+        this.renewalClient = renewalClient;
         this.chIssuers = pdfConfig.getChIssuers();
         this.debug = debug;
     }
@@ -118,7 +125,8 @@ public class TransformationController {
         TransformationType transformationType = TransformationType.LIGHT_CERT;
         rateLimitService.checkRateLimit(uvci, transformationType);
 
-        final var validityRange = (validationResponse.getSuccessState().getSuccessState()).getValidityRange();
+        final var validityRange =
+                (validationResponse.getSuccessState().getSuccessState()).getValidityRange();
         CertLightResponse certLight = certLightClient.getCertLight(euCert, validityRange);
         rateLimitService.logTransformation(uvci, transformationType);
 
@@ -157,6 +165,44 @@ public class TransformationController {
         PdfResponse pdf = pdfClient.getPdf(bitPdfPayload);
         rateLimitService.logTransformation(uvci, transformationType);
         return ResponseEntity.ok(pdf);
+    }
+
+    @Documentation(
+            description =
+                    "Validates the covid certificate, generates and returns a renewed covid certificate",
+            responses = {
+                "200 => Certificate could be validated and transformed",
+                "400 => Certificate can't be decoded or is invalid",
+                "429 => Rate limit exceeded",
+                "502 => Call to Certificate Renewal API or Verification Check Service failed"
+            })
+    @CrossOrigin(origins = {"https://editor.swagger.io"})
+    @PostMapping(path = "/renew")
+    public @ResponseBody ResponseEntity<HCertPayload> getRenewedCert(
+            @Valid @RequestBody HCertPayload hCertPayload)
+            throws ValidationException, ResponseParseError, NoSuchAlgorithmException,
+                    RateLimitExceededException, EmptyCertificateException, MultipleEntriesException,
+                    JsonProcessingException, CertRenewalException {
+
+        // Decode and verify hcert
+        final var validationResponse = verificationCheckClient.validateCertForRenewal(hCertPayload);
+        final var certificateHolder = validationResponse.getHcertDecoded();
+        if (certificateHolder == null || !chIssuers.contains(certificateHolder.getIssuer())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        var euCert = (DccCert) certificateHolder.getCertificate();
+
+        final String uvci = DccHelper.getUvci(euCert);
+        TransformationType transformationType = TransformationType.RENEW;
+        rateLimitService.checkRateLimit(uvci, transformationType);
+        final HCertPayload renewedCert =
+                renewalClient.getRenewedCert(
+                        new BitCertRenewalPayload(
+                                (DecodedVCert) DccHelper.mapToDecodedCert(euCert)));
+        rateLimitService.logTransformation(uvci, transformationType);
+
+        return ResponseEntity.ok(renewedCert);
     }
 
     @ExceptionHandler(ValidationException.class)
@@ -199,5 +245,12 @@ public class TransformationController {
     public ResponseEntity<Void> rateLimitExceeded(RateLimitExceededException e) {
         logger.info("Rate limit exceeded for uvci-hash: {}", e.getUvciHash());
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
+    }
+
+    @ExceptionHandler(CertRenewalException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<Object> certRenewalFailed(CertRenewalException e) {
+        logger.info("Cert renewal failed. {}", e.toString(), e);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 }
