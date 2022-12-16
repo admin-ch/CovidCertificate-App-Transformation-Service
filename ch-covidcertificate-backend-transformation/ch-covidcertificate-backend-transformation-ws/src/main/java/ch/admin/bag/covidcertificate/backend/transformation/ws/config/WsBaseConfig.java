@@ -68,9 +68,7 @@ public abstract class WsBaseConfig {
     @Value("${ws.rate-limit:10}")
     private int rateLimit;
 
-    public abstract DataSource dataSource();
-
-    public abstract Flyway flyway();
+    public abstract Flyway flyway(DataSource dataSource);
 
     public abstract BitClient bitClient(
             ClientRegistrationRepository clientRegistration, ObjectMapper objectMapper);
