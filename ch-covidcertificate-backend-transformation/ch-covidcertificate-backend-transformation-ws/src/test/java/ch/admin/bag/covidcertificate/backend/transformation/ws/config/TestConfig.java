@@ -26,12 +26,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 @Configuration
 public class TestConfig extends WsBaseConfig {
 
-    @Autowired DataSource dataSource;
-
-    public DataSource dataSource() {
-        return dataSource;
-    }
-
     @Bean
     @Override
     public Flyway flyway(DataSource dataSource) {
